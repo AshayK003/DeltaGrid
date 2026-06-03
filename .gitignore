@@ -38,6 +38,9 @@ data/cache/
 # Agent context (local only)
 AGENTS.md
 
+# Logs
+*.log
+
 # OS
 .DS_Store
 Thumbs.db
