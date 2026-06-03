@@ -5,15 +5,22 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from src.config import COUNTRY_COL, ISO_COL, YEAR_COL
+from app.components.ui import render_empty_state
+from src.config import CLASS_COLORS, CLASS_LABELS, COUNTRY_COL, ISO_COL, YEAR_COL
 
-CLASS_COLORS = {
-    "hidden_champion": "#00C853",
-    "on_track": "#4CAF50",
-    "slightly_behind": "#FFC107",
-    "laggard": "#F44336",
-    "no_data": "#9E9E9E",
-}
+
+def _format_gap(val: float) -> str:
+    """Format gap value with +/- sign."""
+    if pd.isna(val):
+        return ""
+    return f"+{val:.1f}" if val >= 0 else f"{val:.1f}"
+
+
+def _format_score(val: float) -> str:
+    """Format green score to 1 decimal."""
+    if pd.isna(val):
+        return ""
+    return f"{val:.1f}"
 
 
 def render_ranking_table(
@@ -33,7 +40,10 @@ def render_ranking_table(
     st.subheader(title)
 
     if df.empty:
-        st.info("No data available")
+        render_empty_state(
+            title="No countries match",
+            message="Try adjusting your filters or weights.",
+        )
         return
 
     display_cols = [ISO_COL, COUNTRY_COL]
@@ -47,28 +57,46 @@ def render_ranking_table(
         display_cols.append("classification")
 
     existing = [c for c in display_cols if c in df.columns]
+    total = len(df)
     table_df = df[existing].head(max_rows).copy()
 
-    # Style the gap column
-    if "gap" in table_df.columns:
-        def color_gap(val):
-            if val > 5:
-                return f"color: {CLASS_COLORS['hidden_champion']}; font-weight: bold"
-            elif val > 0:
-                return f"color: {CLASS_COLORS['on_track']}"
-            elif val > -5:
-                return f"color: {CLASS_COLORS['slightly_behind']}"
-            else:
-                return f"color: {CLASS_COLORS['laggard']}; font-weight: bold"
+    # Map raw classification keys to readable labels
+    if "classification" in table_df.columns:
+        table_df["classification"] = (
+            table_df["classification"]
+            .map(CLASS_LABELS)
+            .fillna(table_df["classification"])
+        )
 
-        styled = table_df.style.applymap(color_gap, subset=["gap"])
-        st.dataframe(styled, use_container_width=True, hide_index=True)
+    # Format numbers
+    if "gap" in table_df.columns:
+        table_df["gap"] = table_df["gap"].map(_format_gap)
+    if "green_score" in table_df.columns:
+        table_df["green_score"] = table_df["green_score"].map(_format_score)
+
+    # Rename columns for display
+    rename_map = {
+        ISO_COL: "ISO",
+        COUNTRY_COL: "Country",
+        YEAR_COL: "Year",
+        "gap": "Gap",
+        "green_score": "Green Score",
+        "classification": "Status",
+    }
+    table_df = table_df.rename(columns=rename_map)
+
+    # Row count indicator
+    showing = min(max_rows, total)
+    if total > max_rows:
+        st.caption(f"Showing {showing} of {total} countries")
     else:
-        st.dataframe(table_df, use_container_width=True, hide_index=True)
+        st.caption(f"{total} countries")
+
+    st.dataframe(table_df, use_container_width=True, hide_index=True)
 
 
 def render_classification_summary(df: pd.DataFrame) -> None:
-    """Render summary counts by classification."""
+    """Render summary counts by classification with badges."""
     if "classification" not in df.columns:
         return
 
@@ -78,4 +106,5 @@ def render_classification_summary(df: pd.DataFrame) -> None:
     for i, (cls, color) in enumerate(CLASS_COLORS.items()):
         with cols[i]:
             count = counts.get(cls, 0)
-            st.metric(label=cls.replace("_", " ").title(), value=count)
+            label = CLASS_LABELS.get(cls, cls.replace("_", " ").title())
+            st.metric(label=label, value=count)

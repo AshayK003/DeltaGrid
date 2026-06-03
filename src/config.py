@@ -75,3 +75,20 @@ CLASS_THRESHOLDS = {
     "on_track": 0,
     "slightly_behind": -5,
 }
+
+# --- Classification display ---
+CLASS_COLORS = {
+    "hidden_champion": "#00C853",
+    "on_track": "#4CAF50",
+    "slightly_behind": "#FFC107",
+    "laggard": "#F44336",
+    "no_data": "#9E9E9E",
+}
+
+CLASS_LABELS = {
+    "hidden_champion": "Hidden Champion",
+    "on_track": "On Track",
+    "slightly_behind": "Slightly Behind",
+    "laggard": "Laggard",
+    "no_data": "No Data",
+}

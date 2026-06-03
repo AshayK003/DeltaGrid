@@ -4,6 +4,7 @@ import streamlit as st
 
 from app.components.sidebar import render_sidebar
 from app.components.tables import render_ranking_table
+from app.components.ui import render_error_state, render_page_header
 from app.pages.shared import cached_analysis
 from src.data.owid import get_owid_year_range, load_owid_data
 from src.models.ranking import (
@@ -14,19 +15,28 @@ from src.models.ranking import (
 
 st.set_page_config(
     page_title="Rankings — DeltaGrid",
-    page_icon="🏆",
+    page_icon="⚡",
     layout="wide",
 )
-st.title("🏆 Country Rankings")
+st.markdown('<div id="main-content"></div>', unsafe_allow_html=True)
+render_page_header(
+    "Country Rankings",
+    "Explore country performance sorted by gap analysis results.",
+)
 
 with st.spinner("Loading energy data..."):
     energy_df = load_owid_data()
 year_range = get_owid_year_range(energy_df)
 weights, selected_year = render_sidebar(year_range)
 
-result = cached_analysis(weights, selected_year, energy_df)
-
-st.success(f"Loaded NDC data for {result.ndc_count} countries")
+try:
+    result = cached_analysis(weights, selected_year, energy_df)
+except Exception as e:
+    render_error_state(
+        title="Analysis failed",
+        message=f"Could not complete analysis: {e}",
+    )
+    st.stop()
 
 tab1, tab2, tab3 = st.tabs(
     ["All Countries", "Laggards", "Hidden Champions"]
