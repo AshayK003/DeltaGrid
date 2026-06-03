@@ -5,9 +5,9 @@ import streamlit as st
 from app.components.choropleth import render_choropleth
 from app.components.sidebar import render_sidebar
 from app.components.tables import render_classification_summary
+from app.pages.shared import cached_analysis
 from src.data.owid import get_owid_year_range, load_owid_data
 from src.models.ranking import get_laggards
-from src.pipeline import run_analysis
 
 st.set_page_config(
     page_title="Gap Analysis — DeltaGrid",
@@ -21,8 +21,7 @@ with st.spinner("Loading energy data..."):
 year_range = get_owid_year_range(energy_df)
 weights, selected_year = render_sidebar(year_range)
 
-with st.spinner("Running analysis..."):
-    result = run_analysis(weights, selected_year)
+result = cached_analysis(weights, selected_year, energy_df)
 
 st.success(f"Loaded NDC data for {result.ndc_count} countries")
 

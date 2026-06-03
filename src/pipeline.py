@@ -29,17 +29,22 @@ class AnalysisResult:
 def run_analysis(
     weights: dict[str, float],
     selected_year: int,
+    energy_df: pd.DataFrame | None = None,
 ) -> AnalysisResult:
     """Run the full analysis pipeline.
 
     Steps: load OWID → score → fetch NDCs → gap → classify.
+
+    Optionally accepts a pre-loaded energy_df to avoid redundant CSV reads.
     """
     logger.info(
         "Running analysis for year=%d with %d weights",
         selected_year, len(weights),
     )
 
-    energy_df = load_owid_data()
+    if energy_df is None:
+        energy_df = load_owid_data()
+
     scored_df = compute_green_score(energy_df, weights)
     year_df = scored_df[scored_df["year"] == selected_year].copy()
 
