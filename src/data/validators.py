@@ -1,8 +1,12 @@
 """Schema validation, ISO normalization, and dataset merging."""
 
+import logging
+
 import pandas as pd
 
 from src.config import ENERGY_SHARE_COLS, ISO_COL, YEAR_COL
+
+logger = logging.getLogger(__name__)
 
 
 def validate_energy_data(df: pd.DataFrame) -> list[str]:

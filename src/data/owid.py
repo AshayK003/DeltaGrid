@@ -1,5 +1,6 @@
 """OWID energy data ingestion with filtering and caching."""
 
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -18,30 +19,37 @@ from src.config import (
 from src.data.cache import read_cache, write_cache
 from src.data.country_codes import is_aggregate, normalize_iso3
 
+logger = logging.getLogger(__name__)
+
 
 def download_owid_csv() -> Path:
     """Download OWID energy CSV if not cached locally."""
     if OWID_CSV.exists():
         return OWID_CSV
     OWID_CSV.parent.mkdir(parents=True, exist_ok=True)
-    resp = requests.get(OWID_URL, timeout=60)
-    resp.raise_for_status()
-    OWID_CSV.write_bytes(resp.content)
+    logger.info("Downloading OWID CSV from %s", OWID_URL)
+    try:
+        resp = requests.get(OWID_URL, timeout=60)
+        resp.raise_for_status()
+        OWID_CSV.write_bytes(resp.content)
+        logger.info("Downloaded OWID CSV: %d bytes", len(resp.content))
+    except requests.RequestException as e:
+        logger.error("Failed to download OWID CSV: %s", e)
+        raise
     return OWID_CSV
 
 
 def load_owid_data() -> pd.DataFrame:
-    """Load OWID CSV, filter aggregates, normalize ISO codes.
-
-    Returns DataFrame with columns: iso_code, year, country, + all share/absolute cols.
-    """
-    cache_key = "owid_raw"
+    """Load OWID CSV, filter aggregates, normalize ISO codes."""
+    cache_key = "owid_filtered"
     cached = read_cache(cache_key, CACHE_TTL_CSV)
     if cached is not None:
+        logger.info("Loaded OWID data from cache (%d rows)", len(cached))
         return pd.DataFrame(cached)
 
     csv_path = download_owid_csv()
     df = pd.read_csv(csv_path, low_memory=False)
+    logger.info("Read OWID CSV: %d rows", len(df))
 
     # Normalize ISO codes
     df[ISO_COL] = df[ISO_COL].fillna("").apply(normalize_iso3)
@@ -61,7 +69,20 @@ def load_owid_data() -> pd.DataFrame:
     # Convert to numeric
     for col in ENERGY_SHARE_COLS + ENERGY_ABSOLUTE_COLS:
         if col in df.columns:
+            before_nan = df[col].isna().sum()
             df[col] = pd.to_numeric(df[col], errors="coerce")
+            new_nan = df[col].isna().sum() - before_nan
+            if new_nan > 0:
+                logger.warning(
+                    "Column %s: %d values coerced to NaN", col, new_nan
+                )
+
+    logger.info(
+        "Filtered OWID data: %d rows, years %s-%s",
+        len(df),
+        df[YEAR_COL].min(),
+        df[YEAR_COL].max(),
+    )
 
     write_cache(cache_key, df.to_dict(orient="records"))
     return df
@@ -69,11 +90,15 @@ def load_owid_data() -> pd.DataFrame:
 
 def get_owid_latest_year(df: pd.DataFrame) -> int:
     """Return the most recent year in the dataset."""
+    if df.empty:
+        return 0
     return int(df[YEAR_COL].max())
 
 
 def get_owid_year_range(df: pd.DataFrame) -> tuple[int, int]:
     """Return (min_year, max_year) of available data."""
+    if df.empty:
+        return (0, 0)
     return int(df[YEAR_COL].min()), int(df[YEAR_COL].max())
 
 

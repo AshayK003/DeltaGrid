@@ -1,6 +1,14 @@
 """Project constants, URLs, column lists, and default weights."""
 
+import logging
 from pathlib import Path
+from types import MappingProxyType
+
+# --- Logging ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+)
 
 # --- Paths ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -10,11 +18,18 @@ CACHE_DIR = DATA_DIR / "cache"
 OWID_CSV = RAW_DIR / "owid-energy-data-2010-2025.csv"
 
 # --- URLs ---
-OWID_URL = "https://github.com/owid/energy-data/raw/master/owid-energy-data.csv"
+OWID_URL = (
+    "https://github.com/owid/energy-data/raw/master/"
+    "owid-energy-data.csv"
+)
 CLIMATE_WATCH_NDC_URL = "https://www.climatewatchdata.org/api/v1/ndcs"
 CLIMATE_WATCH_EMISSIONS_URL = (
     "https://www.climatewatchdata.org/api/v1/data/historical_emissions"
 )
+
+# --- Year range ---
+YEAR_MIN = 2010
+YEAR_MAX = 2025
 
 # --- OWID columns ---
 ISO_COL = "iso_code"
@@ -40,15 +55,15 @@ ENERGY_ABSOLUTE_COLS = [
     "coal_consumption",
 ]
 
-# --- Green score default weights ---
-DEFAULT_WEIGHTS: dict[str, float] = {
+# --- Green score default weights (frozen) ---
+DEFAULT_WEIGHTS: MappingProxyType[str, float] = MappingProxyType({
     "solar_share_energy": 1.0,
     "wind_share_energy": 1.0,
     "hydro_share_energy": 1.0,
     "nuclear_share_energy": 0.5,
     "gas_share_energy": 0.2,
     "coal_share_energy": 0.0,
-}
+})
 
 # --- Cache TTL (seconds) ---
 CACHE_TTL_API = 24 * 60 * 60       # 24 hours

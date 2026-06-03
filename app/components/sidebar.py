@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from src.config import DEFAULT_WEIGHTS, ENERGY_SHARE_COLS
+from src.config import DEFAULT_WEIGHTS, ENERGY_SHARE_COLS, YEAR_MAX, YEAR_MIN
 
 WEIGHT_LABELS = {
     "solar_share_energy": "Solar",
@@ -22,12 +22,11 @@ def render_sidebar(year_range: tuple[int, int]) -> tuple[dict[str, float], int]:
     """
     st.sidebar.header("Configuration")
 
-    # Year selector (fixed 2010–2025 range)
     selected_year = st.sidebar.slider(
         "Year",
-        min_value=2010,
-        max_value=2025,
-        value=2022,
+        min_value=YEAR_MIN,
+        max_value=YEAR_MAX,
+        value=min(YEAR_MAX, 2022),
         step=1,
     )
 

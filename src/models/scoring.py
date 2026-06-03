@@ -1,9 +1,13 @@
 """Green score computation: weighted sum of energy shares, normalized 0-100."""
 
+import logging
+
 import numpy as np
 import pandas as pd
 
 from src.config import DEFAULT_WEIGHTS, ISO_COL, YEAR_COL
+
+logger = logging.getLogger(__name__)
 
 
 def compute_green_score(
@@ -14,13 +18,13 @@ def compute_green_score(
 
     Args:
         df: OWID energy data with share columns.
-        weights: Mapping of column name → weight. Defaults to DEFAULT_WEIGHTS.
+        weights: Mapping of column name → weight.
 
     Returns:
         DataFrame with added 'green_score' column (0-100 scale).
     """
     if weights is None:
-        weights = DEFAULT_WEIGHTS
+        weights = dict(DEFAULT_WEIGHTS)
 
     result = df.copy()
 

@@ -7,7 +7,6 @@ from src.data.climate_watch import (
     _parse_ghg_percentage,
     _parse_ndc_entry,
     fetch_all_ndcs,
-    fetch_ndc,
 )
 
 
@@ -52,78 +51,6 @@ class TestParseGhgPercentage:
         assert _parse_ghg_percentage("Target: 45%") == 45.0
 
 
-class TestFetchNdc:
-    def setup_method(self):
-        clear_cache()
-
-    @patch("src.data.climate_watch.requests.get")
-    def test_successful_fetch(self, mock_get):
-        mock_resp = MagicMock()
-        mock_resp.json.return_value = {
-            "data": [{
-                "iso_code3": "IND",
-                "ndc_text": "India NDC",
-                "indicators": [
-                    {"name": "GHG Target", "value": "45%"},
-                    {"name": "Target Type", "value": "Absolute"},
-                ],
-            }]
-        }
-        mock_resp.raise_for_status = MagicMock()
-        mock_get.return_value = mock_resp
-
-        result = fetch_ndc("IND")
-        assert result is not None
-        assert result["iso_code"] == "IND"
-        assert result["ghg_target"] == 45.0
-        assert result["ghg_target_type"] == "Absolute"
-
-    @patch("src.data.climate_watch.requests.get")
-    def test_network_failure(self, mock_get):
-        import requests
-        mock_get.side_effect = requests.RequestException("timeout")
-        result = fetch_ndc("IND")
-        assert result is None
-
-    @patch("src.data.climate_watch.requests.get")
-    def test_empty_response(self, mock_get):
-        mock_resp = MagicMock()
-        mock_resp.json.return_value = {"data": []}
-        mock_resp.raise_for_status = MagicMock()
-        mock_get.return_value = mock_resp
-        result = fetch_ndc("IND")
-        assert result is None
-
-    @patch("src.data.climate_watch.requests.get")
-    def test_malformed_json(self, mock_get):
-        mock_resp = MagicMock()
-        mock_resp.json.side_effect = ValueError("bad json")
-        mock_resp.raise_for_status = MagicMock()
-        mock_get.return_value = mock_resp
-        result = fetch_ndc("IND")
-        assert result is None
-
-    @patch("src.data.climate_watch.requests.get")
-    def test_cached_second_call(self, mock_get):
-        mock_resp = MagicMock()
-        mock_resp.json.return_value = {
-            "data": [{
-                "iso_code3": "USA",
-                "ndc_text": "US NDC",
-                "indicators": [
-                    {"name": "GHG Target", "value": "50%"},
-                ],
-            }]
-        }
-        mock_resp.raise_for_status = MagicMock()
-        mock_get.return_value = mock_resp
-
-        result1 = fetch_ndc("USA")
-        result2 = fetch_ndc("USA")
-        assert mock_get.call_count == 1
-        assert result1 == result2
-
-
 class TestParseNdcEntry:
     def test_valid_entry(self):
         entry = {
@@ -154,6 +81,17 @@ class TestParseNdcEntry:
         result = _parse_ndc_entry(entry, "IND")
         assert result is not None
         assert result["ghg_target"] is None
+
+    def test_numeric_target_value(self):
+        entry = {
+            "ndc_text": "Test",
+            "indicators": [
+                {"name": "GHG Target", "value": 45},
+            ],
+        }
+        result = _parse_ndc_entry(entry, "IND")
+        assert result is not None
+        assert result["ghg_target"] == 45.0
 
 
 class TestFetchAllNdc:
@@ -195,3 +133,41 @@ class TestFetchAllNdc:
         mock_get.side_effect = requests.RequestException("timeout")
         result = fetch_all_ndcs()
         assert result == {}
+
+    @patch("src.data.climate_watch.requests.get")
+    def test_bulk_fetch_empty_response(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"data": []}
+        mock_resp.raise_for_status = MagicMock()
+        mock_get.return_value = mock_resp
+        result = fetch_all_ndcs()
+        assert result == {}
+
+    @patch("src.data.climate_watch.requests.get")
+    def test_bulk_fetch_malformed_json(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.json.side_effect = ValueError("bad json")
+        mock_resp.raise_for_status = MagicMock()
+        mock_get.return_value = mock_resp
+        result = fetch_all_ndcs()
+        assert result == {}
+
+    @patch("src.data.climate_watch.requests.get")
+    def test_cached_second_call(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {
+            "data": [{
+                "iso_code3": "USA",
+                "ndc_text": "US NDC",
+                "indicators": [
+                    {"name": "GHG Target", "value": "50%"},
+                ],
+            }]
+        }
+        mock_resp.raise_for_status = MagicMock()
+        mock_get.return_value = mock_resp
+
+        result1 = fetch_all_ndcs()
+        result2 = fetch_all_ndcs()
+        assert mock_get.call_count == 1
+        assert result1 == result2

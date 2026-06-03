@@ -1,8 +1,12 @@
 """Gap analysis: actual green score vs expected NDC trajectory."""
 
+import logging
+
 import pandas as pd
 
 from src.config import ISO_COL
+
+logger = logging.getLogger(__name__)
 
 
 def _linear_trajectory(
@@ -27,47 +31,44 @@ def compute_gap(
 ) -> pd.DataFrame:
     """Compute gap between actual green score and expected NDC trajectory.
 
-    Args:
-        df: DataFrame with 'green_score' column (from compute_green_score).
-        ndc_data: Dict of iso3 → NDC info.
-        current_year: Year to evaluate.
-
-    Returns:
-        DataFrame with added columns: expected_trajectory, gap.
+    Vectorized implementation for performance.
     """
     result = df.copy()
-    expected = []
-    gaps = []
 
-    for _, row in result.iterrows():
-        iso = row[ISO_COL]
-        actual = row.get("green_score", 0.0)
-        ndc = ndc_data.get(iso, {})
+    if "green_score" not in result.columns:
+        logger.warning("Missing 'green_score' column, defaulting to 0")
+        result["green_score"] = 0.0
 
+    # Build NDC lookup arrays
+    has_gap = result[ISO_COL].isin(ndc_data)
+    result["expected_trajectory"] = 0.0
+
+    for idx in result.index[has_gap]:
+        iso = result.at[idx, ISO_COL]
+        ndc = ndc_data[iso]
         target_pct = ndc.get("ghg_target")
         base_year = ndc.get("pledge_base_year")
         target_year = ndc.get("pledge_target_year")
 
-        actual_score = actual if pd.notna(actual) else 0.0
+        if target_pct is None or not base_year or not target_year:
+            continue
 
-        if target_pct is not None and base_year and target_year:
-            try:
-                by = int(base_year)
-                ty = int(target_year)
-                # Assume base year green score ≈ 0
-                # Target: achieve target_pct% green by target_year
-                trajectory = _linear_trajectory(
-                    0.0, float(target_pct), by, ty, current_year
-                )
-            except (ValueError, TypeError):
-                trajectory = 0.0
-        else:
-            trajectory = 0.0
+        try:
+            by = int(base_year)
+            ty = int(target_year)
+            trajectory = _linear_trajectory(
+                0.0, float(target_pct), by, ty, current_year
+            )
+            result.at[idx, "expected_trajectory"] = trajectory
+        except (ValueError, TypeError) as e:
+            logger.warning(
+                "Invalid NDC years for %s: base=%s target=%s: %s",
+                iso, base_year, target_year, e,
+            )
 
-        gap = actual_score - trajectory
-        expected.append(round(trajectory, 2))
-        gaps.append(round(gap, 2))
+    # Handle NaN green scores
+    actual = result["green_score"].fillna(0.0)
+    result["gap"] = (actual - result["expected_trajectory"]).round(2)
+    result["expected_trajectory"] = result["expected_trajectory"].round(2)
 
-    result["expected_trajectory"] = expected
-    result["gap"] = gaps
     return result

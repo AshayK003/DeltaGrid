@@ -1,8 +1,12 @@
 """Country classification and ranking based on gap analysis."""
 
+import logging
+
 import pandas as pd
 
 from src.config import CLASS_THRESHOLDS
+
+logger = logging.getLogger(__name__)
 
 
 def classify_gap(gap: float) -> str:
@@ -18,19 +22,17 @@ def classify_gap(gap: float) -> str:
 
 
 def classify_countries(df: pd.DataFrame) -> pd.DataFrame:
-    """Add a 'classification' column based on gap values.
-
-    Expects DataFrame with 'gap' column from compute_gap().
-    """
+    """Add a 'classification' column based on gap values."""
     result = df.copy()
     if "gap" not in result.columns:
         result["classification"] = "no_data"
         return result
 
     result["classification"] = result["gap"].apply(classify_gap)
-
-    # Mark rows with missing gap as no_data
     result.loc[result["gap"].isna(), "classification"] = "no_data"
+
+    counts = result["classification"].value_counts().to_dict()
+    logger.info("Classification: %s", counts)
 
     return result
 
