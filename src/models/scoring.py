@@ -45,9 +45,9 @@ def compute_green_score(
             score += result[col].values * w
             total_weight += w
 
-    # Normalize to 0-100
-    if total_weight > 0 and score.max() > 0:
-        score = (score / score.max()) * 100
+    # Normalize to absolute 0-100 scale
+    if total_weight > 0:
+        score = score / total_weight
 
     result["green_score"] = np.round(score, 2)
     return result

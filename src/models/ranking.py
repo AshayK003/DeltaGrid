@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 def classify_gap(gap: float) -> str:
     """Classify a single gap value into a category."""
+    if pd.isna(gap):
+        return "no_data"
     if gap > CLASS_THRESHOLDS["hidden_champion"]:
         return "hidden_champion"
     elif gap >= CLASS_THRESHOLDS["on_track"]:

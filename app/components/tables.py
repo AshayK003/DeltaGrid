@@ -101,10 +101,14 @@ def render_classification_summary(df: pd.DataFrame) -> None:
         return
 
     counts = df["classification"].value_counts()
-    cols = st.columns(len(CLASS_COLORS))
+    # Only show classes that actually appear in the data
+    present = [cls for cls in CLASS_COLORS if cls in counts.index]
+    if not present:
+        return
 
-    for i, (cls, color) in enumerate(CLASS_COLORS.items()):
+    cols = st.columns(len(present))
+    for i, cls in enumerate(present):
         with cols[i]:
-            count = counts.get(cls, 0)
+            count = counts[cls]
             label = CLASS_LABELS.get(cls, cls.replace("_", " ").title())
             st.metric(label=label, value=count)

@@ -95,7 +95,16 @@ def test_compute_green_score_single_row():
         "solar_share_energy": [5.0],
     })
     result = compute_green_score(df, weights={"solar_share_energy": 1.0})
-    assert result["green_score"].iloc[0] == 100.0
+    assert result["green_score"].iloc[0] == 5.0
+    # With a 100% share, score should be 100 (absolute max)
+    df2 = pd.DataFrame({
+        "iso_code": ["X"],
+        "year": [2020],
+        "country": ["X"],
+        "solar_share_energy": [100.0],
+    })
+    result2 = compute_green_score(df2, weights={"solar_share_energy": 1.0})
+    assert result2["green_score"].iloc[0] == 100.0
 
 
 def test_compute_green_score_does_not_mutate_input():

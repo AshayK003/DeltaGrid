@@ -9,6 +9,7 @@ Interactive Streamlit dashboard that calculates the gap between Paris Agreement 
 - **Country Rankings** — laggards, hidden champions, and full sortable table
 - **Interactive Weights** — sidebar sliders to adjust energy source importance in real-time
 - **World Map** — choropleth visualization of green scores and gaps by country
+- **Custom Data Upload** — upload your own CSV/XLSX with automatic preprocessing (encoding detection, column normalization, ISO mapping)
 - **Methodology** — transparent scoring formula and data source documentation
 
 ## Quick Start
@@ -47,6 +48,7 @@ src/
     validators.py        — data validation
     cache.py             — TTL disk cache
     country_codes.py     — ISO mapping
+    upload_preprocessor.py — CSV/XLSX upload preprocessing pipeline
   models/
     scoring.py           — green score computation
     gap.py               — gap analysis
@@ -55,7 +57,7 @@ app/
   main.py                — entry point
   components/            — sidebar, choropleth, tables
   pages/                 — gap analysis, rankings, methodology
-tests/                   — 122 tests (unit + integration)
+tests/                   — 121 tests (unit + integration)
 ```
 
 ## Development

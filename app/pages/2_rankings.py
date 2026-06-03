@@ -5,7 +5,7 @@ import streamlit as st
 from app.components.sidebar import render_sidebar
 from app.components.tables import render_ranking_table
 from app.components.ui import render_error_state, render_page_header
-from app.pages.shared import cached_analysis
+from app.pages._shared import cached_analysis
 from src.data.owid import get_owid_year_range, load_owid_data
 from src.models.ranking import (
     get_hidden_champions,
@@ -18,14 +18,16 @@ st.set_page_config(
     page_icon="⚡",
     layout="wide",
 )
-st.markdown('<div id="main-content"></div>', unsafe_allow_html=True)
 render_page_header(
     "Country Rankings",
     "Explore country performance sorted by gap analysis results.",
 )
 
 with st.spinner("Loading energy data..."):
-    energy_df = load_owid_data()
+    if "uploaded_df" in st.session_state:
+        energy_df = st.session_state["uploaded_df"]
+    else:
+        energy_df = load_owid_data()
 year_range = get_owid_year_range(energy_df)
 weights, selected_year = render_sidebar(year_range)
 

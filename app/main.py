@@ -21,23 +21,6 @@ def inject_custom_css() -> None:
     st.markdown(
         """
         <style>
-        /* Skip link for keyboard navigation */
-        .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: #4CAF50;
-            color: white;
-            padding: 8px 16px;
-            z-index: 10000;
-            transition: top 0.2s;
-            font-size: 14px;
-            border-radius: 0 0 4px 0;
-        }
-        .skip-link:focus {
-            top: 0;
-        }
-
         /* Skeleton shimmer animation */
         @keyframes shimmer {
             0% { background-position: -200% 0; }
@@ -158,16 +141,10 @@ def inject_custom_css() -> None:
         h2 { font-size: 22px !important; }
         h3 { font-size: 18px !important; }
         </style>
-
-        <a href="#main-content" class="skip-link">
-            Skip to main content
-        </a>
         """,
         unsafe_allow_html=True,
     )
 
-
-inject_custom_css()
 
 st.set_page_config(
     page_title="DeltaGrid",
@@ -175,14 +152,18 @@ st.set_page_config(
     layout="wide",
 )
 
-st.markdown('<div id="main-content"></div>', unsafe_allow_html=True)
+inject_custom_css()
+
 render_page_header(
     "DeltaGrid",
     "Paris Agreement NDC pledges vs actual energy trajectory gap analysis",
 )
 
 with st.spinner("Loading energy data..."):
-    energy_df = load_owid_data()
+    if "uploaded_df" in st.session_state:
+        energy_df = st.session_state["uploaded_df"]
+    else:
+        energy_df = load_owid_data()
 
 year_range = get_owid_year_range(energy_df)
 weights, selected_year = render_sidebar(year_range)
@@ -200,13 +181,17 @@ render_choropleth(
 )
 
 # Metrics in card containers
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("Countries", len(year_df))
 with col2:
     avg_score = year_df["green_score"].mean()
     st.metric("Avg Green Score", f"{avg_score:.1f}")
 with col3:
+    min_score = year_df["green_score"].min()
+    max_score = year_df["green_score"].max()
+    st.metric("Score Range", f"{min_score:.1f} – {max_score:.1f}")
+with col4:
     st.metric("Year", selected_year)
 
 render_footer()

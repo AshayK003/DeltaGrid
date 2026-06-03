@@ -10,7 +10,6 @@ st.set_page_config(
     page_icon="⚡",
     layout="wide",
 )
-st.markdown('<div id="main-content"></div>', unsafe_allow_html=True)
 render_page_header(
     "Methodology",
     "How the Green Score, Gap, and Classification are calculated.",

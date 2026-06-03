@@ -1,10 +1,11 @@
-"""Sidebar: weight sliders and year selector with grouped controls."""
+"""Sidebar: weight sliders, year selector, and file upload."""
 
 from __future__ import annotations
 
 import streamlit as st
 
 from src.config import DEFAULT_WEIGHTS, ENERGY_SHARE_COLS, YEAR_MAX, YEAR_MIN
+from src.data.upload_preprocessor import preprocess_upload
 
 # Readable labels for energy sources
 WEIGHT_LABELS = {
@@ -29,16 +30,64 @@ def render_sidebar(year_range: tuple[int, int]) -> tuple[dict[str, float], int]:
     """
     st.sidebar.header("Configuration")
 
-    # Year selector — prominent display
+    # --- File upload with preprocessing ---
+    st.sidebar.subheader("Upload Data")
+    uploaded_file = st.sidebar.file_uploader(
+        "Upload your own energy dataset",
+        type=["csv", "xlsx", "xls"],
+        help="CSV or Excel file. Required: iso_code, year. "
+             "Optional: country, solar_share_energy, etc.",
+    )
+
+    if uploaded_file is not None:
+        # Only preprocess if this is a new file (different name/size)
+        file_key = f"{uploaded_file.name}_{uploaded_file.size}"
+        if st.session_state.get("_upload_key") != file_key:
+            result = preprocess_upload(uploaded_file)
+            st.session_state["_upload_key"] = file_key
+
+            if result.errors:
+                for err in result.errors:
+                    st.sidebar.error(err)
+                st.session_state.pop("uploaded_df", None)
+            else:
+                st.session_state["uploaded_df"] = result.df
+                for warn in result.warnings:
+                    st.sidebar.warning(warn)
+                st.sidebar.success(
+                    f"Loaded {uploaded_file.name} "
+                    f"({len(result.df)} rows, "
+                    f"{result.df['iso_code'].nunique()} countries)"
+                )
+        else:
+            st.sidebar.success(
+                f"Using {uploaded_file.name} "
+                f"({len(st.session_state.get('uploaded_df', []))} rows)"
+            )
+    elif "uploaded_df" in st.session_state:
+        st.sidebar.info("Using uploaded data.")
+        if st.sidebar.button("Clear uploaded data", use_container_width=True):
+            st.session_state.pop("uploaded_df", None)
+            st.session_state.pop("_upload_key", None)
+            st.rerun()
+
+    st.sidebar.divider()
+
+    # --- Year selector — uses actual data year range ---
+    data_min_year, data_max_year = year_range
+    min_year = max(YEAR_MIN, data_min_year)
+    max_year = min(YEAR_MAX, data_max_year)
+    default_year = min(max_year, 2022)
+
     selected_year = st.sidebar.slider(
         "Year",
-        min_value=YEAR_MIN,
-        max_value=YEAR_MAX,
-        value=min(YEAR_MAX, 2022),
+        min_value=min_year,
+        max_value=max_year,
+        value=default_year,
         step=1,
     )
     st.sidebar.caption(
-        f"Selected: **{selected_year}** — Year for gap analysis"
+        f"Year: **{selected_year}** (data range: {min_year}–{max_year})"
     )
 
     st.sidebar.divider()
@@ -79,12 +128,22 @@ def render_sidebar(year_range: tuple[int, int]) -> tuple[dict[str, float], int]:
             key=f"weight_{col}",
         )
 
+    # Weight summary
+    active = {WEIGHT_LABELS.get(k, k): v for k, v in weights.items() if v > 0}
+    if active:
+        st.sidebar.caption(
+            "Active weights: "
+            + ", ".join(f"{k}={v:.1f}" for k, v in sorted(active.items()))
+        )
+
     st.sidebar.divider()
 
-    # Reset button
+    # Reset button — delete widget keys so sliders fall back to value= param
     if st.sidebar.button("Reset to Defaults", use_container_width=True):
         for col in ENERGY_SHARE_COLS:
-            st.session_state[f"weight_{col}"] = DEFAULT_WEIGHTS.get(col, 1.0)
+            key = f"weight_{col}"
+            if key in st.session_state:
+                del st.session_state[key]
         st.rerun()
 
     return weights, selected_year

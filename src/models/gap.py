@@ -35,12 +35,17 @@ def _vectorized_trajectory(
     """Vectorized linear interpolation for arrays of trajectories."""
     result = np.zeros_like(target_values, dtype=float)
 
-    # Avoid division by zero
-    valid = (target_years != base_years) & (target_years > 0) & (base_years > 0)
+    # Avoid division by zero; also treat year 0 as invalid
+    valid = (
+        (target_years != base_years)
+        & (target_years > 0)
+        & (base_years > 0)
+    )
 
     progress = np.zeros_like(target_values, dtype=float)
     progress[valid] = (
-        (current_year - base_years[valid]) / (target_years[valid] - base_years[valid])
+        (current_year - base_years[valid])
+        / (target_years[valid] - base_years[valid])
     )
     progress = np.clip(progress, 0.0, 1.0)
 
@@ -48,8 +53,8 @@ def _vectorized_trajectory(
         target_values[valid] - base_values[valid]
     ) * progress[valid]
 
-    # Handle same-year case
-    same_year = valid & (target_years == base_years)
+    # Same-year case: use target value directly
+    same_year = (target_years == base_years) & (target_years > 0)
     result[same_year] = target_values[same_year]
 
     return result
