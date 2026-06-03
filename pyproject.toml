@@ -1,0 +1,37 @@
+[project]
+name = "deltagrid"
+version = "0.1.0"
+description = "Paris Agreement NDC vs energy trajectory gap analysis"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit>=1.57,<2",
+    "plotly>=5.19,<6",
+    "pandas>=2.2,<3",
+    "requests>=2.31,<3",
+    "numpy>=2.2,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11",
+    "mypy>=1.15",
+    "pytest>=8.3",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["N999"]  # Streamlit pages use numbered prefixes
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
