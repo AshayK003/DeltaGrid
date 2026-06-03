@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import requests
+import streamlit as st
 
 from src.config import (
     CACHE_TTL_CSV,
@@ -39,6 +40,7 @@ def download_owid_csv() -> Path:
     return OWID_CSV
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
 def load_owid_data() -> pd.DataFrame:
     """Load OWID CSV, filter aggregates, normalize ISO codes."""
     cache_key = "owid_filtered"

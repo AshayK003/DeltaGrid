@@ -9,6 +9,13 @@ from src.data.owid import get_owid_year_range, load_owid_data
 from src.models.scoring import compute_green_score
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_score(energy_df, weights_key: tuple):
+    """Compute green scores with memoization."""
+    weights = dict(weights_key)
+    return compute_green_score(energy_df, weights)
+
+
 def inject_custom_css() -> None:
     """Inject custom CSS for visual improvements and accessibility."""
     st.markdown(
@@ -180,7 +187,8 @@ with st.spinner("Loading energy data..."):
 year_range = get_owid_year_range(energy_df)
 weights, selected_year = render_sidebar(year_range)
 
-scored_df = compute_green_score(energy_df, weights)
+weights_key = tuple(sorted(weights.items()))
+scored_df = _cached_score(energy_df, weights_key)
 year_df = scored_df[scored_df["year"] == selected_year].copy()
 
 render_choropleth(

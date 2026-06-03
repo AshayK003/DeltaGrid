@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import logging
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from app.components.ui import (
@@ -23,6 +25,68 @@ _COLOR_BAR_LABELS = {
     "gap": "Gap",
     "expected_trajectory": "Expected Trajectory",
 }
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _create_choropleth_figure(
+    data_json: str,
+    color_col: str,
+    title: str,
+    color_scale: str,
+    vmin: float | None,
+    vmax: float | None,
+) -> str:
+    """Create and cache a Plotly choropleth figure as JSON.
+
+    Args:
+        data_json: DataFrame records as JSON string (hashable for caching).
+        color_col: Column to color by.
+        title: Map title.
+        color_scale: Plotly color scale name.
+        vmin: Minimum color value.
+        vmax: Maximum color value.
+
+    Returns:
+        Serialized figure JSON string.
+    """
+    plot_df = pd.read_json(data_json, orient="records")
+
+    fig = px.choropleth(
+        plot_df,
+        locations=ISO_COL,
+        color=color_col,
+        hover_name="country" if "country" in plot_df.columns else ISO_COL,
+        color_continuous_scale=color_scale,
+        range_color=[vmin, vmax] if vmin is not None and vmax is not None else None,
+    )
+
+    color_bar_label = _COLOR_BAR_LABELS.get(
+        color_col, color_col.replace("_", " ").title()
+    )
+
+    fig.update_layout(
+        title=dict(
+            text=title,
+            font=dict(size=16, color="#E0E0E0"),
+            x=0.01,
+            xanchor="left",
+        ),
+        geo=dict(
+            showframe=False,
+            showcoastlines=True,
+            projection_type="natural earth",
+            bgcolor="#0E1117",
+            landcolor="#1A1F2E",
+            showlakes=False,
+        ),
+        margin=dict(l=0, r=0, t=44, b=0),
+        coloraxis_colorbar=dict(title=color_bar_label),
+        paper_bgcolor="#0E1117",
+        plot_bgcolor="#0E1117",
+        height=500,
+    )
+
+    return fig.to_json()
 
 
 def render_choropleth(
@@ -58,42 +122,16 @@ def render_choropleth(
         return
 
     try:
-        plot_df = df.copy()
+        # Serialize DataFrame to JSON for caching (hashable input)
+        data_json = df.to_json(orient="records")
 
-        fig = px.choropleth(
-            plot_df,
-            locations=ISO_COL,
-            color=color_col,
-            hover_name="country" if "country" in plot_df.columns else ISO_COL,
-            color_continuous_scale=color_scale,
-            range_color=[vmin, vmax] if vmin is not None and vmax is not None else None,
+        # Get cached figure or create new one
+        fig_json = _create_choropleth_figure(
+            data_json, color_col, title, color_scale, vmin, vmax
         )
 
-        color_bar_label = _COLOR_BAR_LABELS.get(
-            color_col, color_col.replace("_", " ").title()
-        )
-
-        fig.update_layout(
-            title=dict(
-                text=title,
-                font=dict(size=16, color="#E0E0E0"),
-                x=0.01,
-                xanchor="left",
-            ),
-            geo=dict(
-                showframe=False,
-                showcoastlines=True,
-                projection_type="natural earth",
-                bgcolor="#0E1117",
-                landcolor="#1A1F2E",
-                showlakes=False,
-            ),
-            margin=dict(l=0, r=0, t=44, b=0),
-            coloraxis_colorbar=dict(title=color_bar_label),
-            paper_bgcolor="#0E1117",
-            plot_bgcolor="#0E1117",
-            height=500,
-        )
+        # Deserialize cached figure
+        fig = go.Figure(json.loads(fig_json))
 
         st.plotly_chart(
             fig,
@@ -104,7 +142,7 @@ def render_choropleth(
             },
         )
 
-        render_country_count(len(plot_df))
+        render_country_count(len(df))
 
     except Exception as e:
         logger.error("Choropleth render error: %s", e)

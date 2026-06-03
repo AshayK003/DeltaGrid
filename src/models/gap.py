@@ -2,6 +2,7 @@
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from src.config import ISO_COL
@@ -24,6 +25,36 @@ def _linear_trajectory(
     return base_value + (target_value - base_value) * progress
 
 
+def _vectorized_trajectory(
+    base_values: np.ndarray,
+    target_values: np.ndarray,
+    base_years: np.ndarray,
+    target_years: np.ndarray,
+    current_year: int,
+) -> np.ndarray:
+    """Vectorized linear interpolation for arrays of trajectories."""
+    result = np.zeros_like(target_values, dtype=float)
+
+    # Avoid division by zero
+    valid = (target_years != base_years) & (target_years > 0) & (base_years > 0)
+
+    progress = np.zeros_like(target_values, dtype=float)
+    progress[valid] = (
+        (current_year - base_years[valid]) / (target_years[valid] - base_years[valid])
+    )
+    progress = np.clip(progress, 0.0, 1.0)
+
+    result[valid] = base_values[valid] + (
+        target_values[valid] - base_values[valid]
+    ) * progress[valid]
+
+    # Handle same-year case
+    same_year = valid & (target_years == base_years)
+    result[same_year] = target_values[same_year]
+
+    return result
+
+
 def compute_gap(
     df: pd.DataFrame,
     ndc_data: dict[str, dict],
@@ -39,13 +70,21 @@ def compute_gap(
         logger.warning("Missing 'green_score' column, defaulting to 0")
         result["green_score"] = 0.0
 
-    # Build NDC lookup arrays
-    has_gap = result[ISO_COL].isin(ndc_data)
-    result["expected_trajectory"] = 0.0
+    # Build NDC lookup arrays for vectorized computation
+    iso_array = result[ISO_COL].values
+    n = len(iso_array)
 
-    for idx in result.index[has_gap]:
-        iso = result.at[idx, ISO_COL]
-        ndc = ndc_data[iso]
+    target_values = np.zeros(n)
+    base_years = np.zeros(n, dtype=int)
+    target_years = np.zeros(n, dtype=int)
+
+    has_ndc = np.zeros(n, dtype=bool)
+
+    for i, iso in enumerate(iso_array):
+        ndc = ndc_data.get(iso)
+        if ndc is None:
+            continue
+
         target_pct = ndc.get("ghg_target")
         base_year = ndc.get("pledge_base_year")
         target_year = ndc.get("pledge_target_year")
@@ -54,17 +93,20 @@ def compute_gap(
             continue
 
         try:
-            by = int(base_year)
-            ty = int(target_year)
-            trajectory = _linear_trajectory(
-                0.0, float(target_pct), by, ty, current_year
-            )
-            result.at[idx, "expected_trajectory"] = trajectory
+            target_values[i] = float(target_pct)
+            base_years[i] = int(base_year)
+            target_years[i] = int(target_year)
+            has_ndc[i] = True
         except (ValueError, TypeError) as e:
             logger.warning(
                 "Invalid NDC years for %s: base=%s target=%s: %s",
                 iso, base_year, target_year, e,
             )
+
+    # Vectorized trajectory computation
+    result["expected_trajectory"] = _vectorized_trajectory(
+        np.zeros(n), target_values, base_years, target_years, current_year
+    )
 
     # Handle NaN green scores
     actual = result["green_score"].fillna(0.0)
