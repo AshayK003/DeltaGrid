@@ -23,9 +23,6 @@ OWID_URL = (
     "owid-energy-data.csv"
 )
 CLIMATE_WATCH_NDC_URL = "https://www.climatewatchdata.org/api/v1/ndcs"
-CLIMATE_WATCH_EMISSIONS_URL = (
-    "https://www.climatewatchdata.org/api/v1/data/historical_emissions"
-)
 
 # --- Year range ---
 YEAR_MIN = 2010

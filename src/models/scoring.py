@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from src.config import DEFAULT_WEIGHTS, ISO_COL, YEAR_COL
+from src.config import DEFAULT_WEIGHTS
 
 logger = logging.getLogger(__name__)
 
@@ -53,16 +53,4 @@ def compute_green_score(
     return result
 
 
-def get_green_score_for_country(
-    df: pd.DataFrame,
-    iso3: str,
-    year: int,
-    weights: dict[str, float] | None = None,
-) -> float | None:
-    """Get green score for a specific country and year."""
-    row = df[(df[ISO_COL] == iso3) & (df[YEAR_COL] == year)]
-    if row.empty:
-        return None
-    scored = compute_green_score(row, weights)
-    val = scored["green_score"].iloc[0]
-    return float(val) if not np.isnan(val) else None
+

@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from src.config import DEFAULT_WEIGHTS
-from src.models.scoring import compute_green_score, get_green_score_for_country
+from src.models.scoring import compute_green_score
 
 
 @pytest.fixture
@@ -48,23 +48,6 @@ def test_compute_green_score_zero_weights():
     weights = {"solar_share_energy": 0.0}
     result = compute_green_score(df, weights=weights)
     assert result["green_score"].iloc[0] == 0.0
-
-
-def test_get_green_score_for_country(sample_energy_df):
-    score = get_green_score_for_country(sample_energy_df, "IND", 2020)
-    assert score is not None
-    assert 0 <= score <= 100
-
-
-def test_get_green_score_missing_country():
-    df = pd.DataFrame({
-        "iso_code": ["IND"],
-        "year": [2020],
-        "country": ["India"],
-        "solar_share_energy": [1.0],
-    })
-    score = get_green_score_for_country(df, "ZZZ", 2020)
-    assert score is None
 
 
 def test_compute_green_score_empty_df():
@@ -117,17 +100,6 @@ def test_compute_green_score_does_not_mutate_input():
     original_cols = list(df.columns)
     compute_green_score(df)
     assert list(df.columns) == original_cols
-
-
-def test_get_green_score_missing_year():
-    df = pd.DataFrame({
-        "iso_code": ["IND", "IND"],
-        "year": [2020, 2021],
-        "country": ["India", "India"],
-        "solar_share_energy": [1.0, 2.0],
-    })
-    score = get_green_score_for_country(df, "IND", 2099)
-    assert score is None
 
 
 def test_compute_green_score_all_zero_shares():

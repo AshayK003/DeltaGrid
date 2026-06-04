@@ -6,14 +6,8 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 
-from src.config import ISO_COL, YEAR_COL
-from src.data.owid import (
-    filter_owid_by_iso,
-    filter_owid_by_year,
-    get_owid_latest_year,
-    get_owid_year_range,
-    load_owid_data,
-)
+from src.config import ISO_COL
+from src.data.owid import get_owid_year_range, load_owid_data
 
 
 @pytest.fixture
@@ -32,11 +26,6 @@ def sample_df():
     })
 
 
-class TestGetOwidLatestYear:
-    def test_returns_max_year(self, sample_df):
-        assert get_owid_latest_year(sample_df) == 2021
-
-
 class TestGetOwidYearRange:
     def test_returns_tuple(self, sample_df):
         result = get_owid_year_range(sample_df)
@@ -46,37 +35,6 @@ class TestGetOwidYearRange:
         result = get_owid_year_range(sample_df)
         assert isinstance(result[0], int)
         assert isinstance(result[1], int)
-
-
-class TestFilterOwidByYear:
-    def test_filters_correctly(self, sample_df):
-        result = filter_owid_by_year(sample_df, 2020)
-        assert len(result) == 2
-        assert all(result[YEAR_COL] == 2020)
-
-    def test_year_not_found(self, sample_df):
-        result = filter_owid_by_year(sample_df, 1999)
-        assert len(result) == 0
-
-    def test_returns_copy(self, sample_df):
-        result = filter_owid_by_year(sample_df, 2020)
-        result["year"] = 9999
-        assert sample_df[YEAR_COL].iloc[0] != 9999
-
-
-class TestFilterOwidByIso:
-    def test_filters_correctly(self, sample_df):
-        result = filter_owid_by_iso(sample_df, "IND")
-        assert len(result) == 2
-        assert all(result[ISO_COL] == "IND")
-
-    def test_iso_not_found(self, sample_df):
-        result = filter_owid_by_iso(sample_df, "ZZZ")
-        assert len(result) == 0
-
-    def test_lowercase_input(self, sample_df):
-        result = filter_owid_by_iso(sample_df, "ind")
-        assert len(result) == 2
 
 
 class TestLoadOwidData:

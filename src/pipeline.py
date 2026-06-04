@@ -22,7 +22,6 @@ class AnalysisResult:
     year_df: pd.DataFrame
     gap_df: pd.DataFrame
     classified: pd.DataFrame
-    ndc_count: int
     selected_year: int
 
 
@@ -63,6 +62,5 @@ def run_analysis(
         year_df=year_df,
         gap_df=gap_df,
         classified=classified,
-        ndc_count=len(ndc_data),
         selected_year=selected_year,
     )

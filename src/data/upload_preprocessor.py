@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import io
 import logging
+import re
 from dataclasses import dataclass
 
 import pandas as pd
@@ -68,8 +70,6 @@ def _read_file(uploaded_file) -> pd.DataFrame | None:
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Normalize column names: strip whitespace, lowercase, snake_case."""
-    import re
-
     result = df.copy()
     new_cols = {}
     for col in result.columns:
@@ -255,5 +255,3 @@ def _detect_alternative_columns(df: pd.DataFrame) -> dict[str, str]:
     return mapping
 
 
-# Need io for file reading
-import io  # noqa: E402

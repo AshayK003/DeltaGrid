@@ -90,13 +90,6 @@ def load_owid_data() -> pd.DataFrame:
     return df
 
 
-def get_owid_latest_year(df: pd.DataFrame) -> int:
-    """Return the most recent year in the dataset."""
-    if df.empty:
-        return 0
-    return int(df[YEAR_COL].max())
-
-
 def get_owid_year_range(df: pd.DataFrame) -> tuple[int, int]:
     """Return (min_year, max_year) of available data."""
     if df.empty:
@@ -104,11 +97,4 @@ def get_owid_year_range(df: pd.DataFrame) -> tuple[int, int]:
     return int(df[YEAR_COL].min()), int(df[YEAR_COL].max())
 
 
-def filter_owid_by_year(df: pd.DataFrame, year: int) -> pd.DataFrame:
-    """Return data for a single year."""
-    return df[df[YEAR_COL] == year].copy()
 
-
-def filter_owid_by_iso(df: pd.DataFrame, iso3: str) -> pd.DataFrame:
-    """Return data for a single country."""
-    return df[df[ISO_COL] == normalize_iso3(iso3)].copy()

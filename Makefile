@@ -17,5 +17,5 @@ serve:
 	streamlit run app/main.py
 
 clean:
-	find . -type d -name __pycache__ -exec rm -rf {} +
+	python -c "import shutil, pathlib; [shutil.rmtree(p, ignore_errors=1) for p in pathlib.Path('.').rglob('__pycache__')]"
 	rm -rf .pytest_cache .mypy_cache .ruff_cache

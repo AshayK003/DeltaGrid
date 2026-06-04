@@ -10,21 +10,6 @@ from src.config import ISO_COL
 logger = logging.getLogger(__name__)
 
 
-def _linear_trajectory(
-    base_value: float,
-    target_value: float,
-    base_year: int,
-    target_year: int,
-    current_year: int,
-) -> float:
-    """Linear interpolation between base and target year values."""
-    if target_year == base_year:
-        return target_value
-    progress = (current_year - base_year) / (target_year - base_year)
-    progress = max(0.0, min(1.0, progress))
-    return base_value + (target_value - base_value) * progress
-
-
 def _vectorized_trajectory(
     base_values: np.ndarray,
     target_values: np.ndarray,
@@ -83,8 +68,6 @@ def compute_gap(
     base_years = np.zeros(n, dtype=int)
     target_years = np.zeros(n, dtype=int)
 
-    has_ndc = np.zeros(n, dtype=bool)
-
     for i, iso in enumerate(iso_array):
         ndc = ndc_data.get(iso)
         if ndc is None:
@@ -101,7 +84,6 @@ def compute_gap(
             target_values[i] = float(target_pct)
             base_years[i] = int(base_year)
             target_years[i] = int(target_year)
-            has_ndc[i] = True
         except (ValueError, TypeError) as e:
             logger.warning(
                 "Invalid NDC years for %s: base=%s target=%s: %s",
