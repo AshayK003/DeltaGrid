@@ -103,6 +103,17 @@ def render_footer() -> None:
                 Climate Watch NDC
             </a>
             &middot; Built with Streamlit
+            <br>
+            <a href="https://chai4.me/darkcharon3301" target="_blank"
+               title="Support darkcharon3301 on Chai4Me"
+               style="display:inline-flex;flex-direction:column;align-items:center;
+                      justify-content:center;background:#ffffff;padding:8px 32px;
+                      border-radius:16px;text-decoration:none;border:1px solid #e5e7eb;
+                      margin-top:8px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05),
+                      0 2px 4px -2px rgba(0,0,0,0.05);">
+                <img src="https://chai4.me/icons/wordmark.png" alt="Chai4Me"
+                     style="height:32px;object-fit:contain;"/>
+            </a>
         </div>
         """,
         unsafe_allow_html=True,
