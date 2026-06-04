@@ -42,7 +42,6 @@ with col1:
     render_choropleth(
         result.classified, "green_score",
         f"Green Score ({selected_year})",
-        vmin=0, vmax=100,
     )
 with col2:
     render_choropleth(

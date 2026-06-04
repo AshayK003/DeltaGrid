@@ -176,8 +176,6 @@ render_choropleth(
     year_df,
     "green_score",
     f"Green Score ({selected_year})",
-    vmin=0,
-    vmax=100,
 )
 
 # Metrics in card containers
