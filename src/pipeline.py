@@ -48,9 +48,9 @@ def run_analysis(
     year_df = scored_df[scored_df["year"] == selected_year].copy()
 
     ndc_data = fetch_all_ndcs()
-    gap_df = compute_gap(scored_df, ndc_data, selected_year)
-    year_gap = gap_df[gap_df["year"] == selected_year].copy()
-    classified = classify_countries(year_gap)
+    classified = classify_countries(
+        compute_gap(year_df, ndc_data, selected_year)
+    )
 
     logger.info(
         "Analysis complete: %d countries, %d with NDCs",
@@ -60,7 +60,7 @@ def run_analysis(
     return AnalysisResult(
         scored_df=scored_df,
         year_df=year_df,
-        gap_df=gap_df,
+        gap_df=classified,
         classified=classified,
         selected_year=selected_year,
     )

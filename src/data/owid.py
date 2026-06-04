@@ -8,7 +8,6 @@ import requests
 import streamlit as st
 
 from src.config import (
-    CACHE_TTL_CSV,
     COUNTRY_COL,
     ENERGY_ABSOLUTE_COLS,
     ENERGY_SHARE_COLS,
@@ -17,7 +16,6 @@ from src.config import (
     OWID_URL,
     YEAR_COL,
 )
-from src.data.cache import read_cache, write_cache
 from src.data.country_codes import is_aggregate, normalize_iso3
 
 logger = logging.getLogger(__name__)
@@ -43,12 +41,6 @@ def download_owid_csv() -> Path:
 @st.cache_data(show_spinner=False, ttl=3600)
 def load_owid_data() -> pd.DataFrame:
     """Load OWID CSV, filter aggregates, normalize ISO codes."""
-    cache_key = "owid_filtered"
-    cached = read_cache(cache_key, CACHE_TTL_CSV)
-    if cached is not None:
-        logger.info("Loaded OWID data from cache (%d rows)", len(cached))
-        return pd.DataFrame(cached)
-
     csv_path = download_owid_csv()
     df = pd.read_csv(csv_path, low_memory=False)
     logger.info("Read OWID CSV: %d rows", len(df))
@@ -86,7 +78,6 @@ def load_owid_data() -> pd.DataFrame:
         df[YEAR_COL].max(),
     )
 
-    write_cache(cache_key, df.to_dict(orient="records"))
     return df
 
 

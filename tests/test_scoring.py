@@ -23,12 +23,12 @@ def sample_energy_df():
 
 
 def test_compute_green_score_returns_column(sample_energy_df):
-    result = compute_green_score(sample_energy_df)
+    result = compute_green_score(sample_energy_df, dict(DEFAULT_WEIGHTS))
     assert "green_score" in result.columns
 
 
 def test_compute_green_score_range(sample_energy_df):
-    result = compute_green_score(sample_energy_df)
+    result = compute_green_score(sample_energy_df, dict(DEFAULT_WEIGHTS))
     assert result["green_score"].between(0, 100).all()
 
 
@@ -52,7 +52,7 @@ def test_compute_green_score_zero_weights():
 
 def test_compute_green_score_empty_df():
     df = pd.DataFrame(columns=["iso_code", "year", "country", "solar_share_energy"])
-    result = compute_green_score(df)
+    result = compute_green_score(df, dict(DEFAULT_WEIGHTS))
     assert "green_score" in result.columns
     assert len(result) == 0
 
@@ -98,7 +98,7 @@ def test_compute_green_score_does_not_mutate_input():
         "solar_share_energy": [1.0],
     })
     original_cols = list(df.columns)
-    compute_green_score(df)
+    compute_green_score(df, dict(DEFAULT_WEIGHTS))
     assert list(df.columns) == original_cols
 
 

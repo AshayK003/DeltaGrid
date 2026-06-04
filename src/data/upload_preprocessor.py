@@ -188,7 +188,7 @@ def preprocess_upload(uploaded_file) -> PreprocessResult:
             df = df[(df[YEAR_COL] >= 1960) & (df[YEAR_COL] <= 2030)]
             warnings.append("Filtered years to 1960-2030 range.")
 
-    # Select available columns (keep extra columns for potential future use)
+    # Select only known columns (drop user-added extras)
     idx_cols = [ISO_COL, YEAR_COL]
     if COUNTRY_COL in df.columns:
         idx_cols.append(COUNTRY_COL)

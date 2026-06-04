@@ -1,8 +1,17 @@
 """Shared page utilities for Streamlit pages."""
 
+import pandas as pd
 import streamlit as st
 
+from src.data.owid import load_owid_data
 from src.pipeline import AnalysisResult, run_analysis
+
+
+def load_energy_data() -> pd.DataFrame:
+    """Load energy data from uploaded file or OWID default."""
+    if "uploaded_df" in st.session_state:
+        return st.session_state["uploaded_df"]
+    return load_owid_data()
 
 
 def cached_analysis(

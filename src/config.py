@@ -1,14 +1,7 @@
 """Project constants, URLs, column lists, and default weights."""
 
-import logging
 from pathlib import Path
 from types import MappingProxyType
-
-# --- Logging ---
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-)
 
 # --- Paths ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

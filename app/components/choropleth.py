@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -18,6 +19,31 @@ from app.components.ui import (
 from src.config import ISO_COL
 
 logger = logging.getLogger(__name__)
+
+
+def compute_percentile_range(
+    series: pd.Series,
+    lower: float = 2.0,
+    upper: float = 98.0,
+) -> tuple[float, float]:
+    """Compute a percentile-based color range, ignoring NaNs.
+
+    Args:
+        series: Data values.
+        lower: Lower percentile (default 2).
+        upper: Upper percentile (default 98).
+
+    Returns:
+        (vmin, vmax) tuple. Falls back to (min, max) if percentiles are equal.
+    """
+    clean = series.dropna()
+    if clean.empty:
+        return (0.0, 1.0)
+    vmin = float(np.percentile(clean.values, lower))
+    vmax = float(np.percentile(clean.values, upper))
+    if vmin == vmax:
+        return (float(clean.min()), float(clean.max()))
+    return (vmin, vmax)
 
 # Readable labels for color bars
 _COLOR_BAR_LABELS = {

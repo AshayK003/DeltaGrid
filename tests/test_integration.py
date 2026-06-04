@@ -3,6 +3,7 @@
 import pandas as pd
 import pytest
 
+from src.config import DEFAULT_WEIGHTS
 from src.data.validators import merge_energy_and_ndc, validate_energy_data
 from src.models.gap import compute_gap
 from src.models.ranking import (
@@ -62,7 +63,7 @@ class TestFullPipeline:
     """OWID → Scoring → Gap → Classification"""
 
     def test_end_to_end_flow(self, energy_df, ndc_data):
-        scored = compute_green_score(energy_df)
+        scored = compute_green_score(energy_df, dict(DEFAULT_WEIGHTS))
         assert "green_score" in scored.columns
 
         year_2021 = scored[scored["year"] == 2021].copy()
@@ -79,7 +80,7 @@ class TestFullPipeline:
         )
 
     def test_rankings_partitions_all_countries(self, energy_df, ndc_data):
-        scored = compute_green_score(energy_df)
+        scored = compute_green_score(energy_df, dict(DEFAULT_WEIGHTS))
         year_2021 = scored[scored["year"] == 2021].copy()
         gap_df = compute_gap(year_2021, ndc_data, 2021)
         classified = classify_countries(gap_df)
@@ -92,7 +93,7 @@ class TestFullPipeline:
         assert total_classified <= len(all_rankings)
 
     def test_green_score_and_gap_correlate(self, energy_df, ndc_data):
-        scored = compute_green_score(energy_df)
+        scored = compute_green_score(energy_df, dict(DEFAULT_WEIGHTS))
         year_2021 = scored[scored["year"] == 2021].copy()
         gap_df = compute_gap(year_2021, ndc_data, 2021)
 
@@ -161,7 +162,7 @@ class TestNoNdcCountries:
     """Countries without NDC data should get gap = green_score"""
 
     def test_no_ndc_gap_equals_score(self, energy_df):
-        scored = compute_green_score(energy_df)
+        scored = compute_green_score(energy_df, dict(DEFAULT_WEIGHTS))
         year_2021 = scored[scored["year"] == 2021].copy()
         gap_df = compute_gap(year_2021, {}, 2021)
 

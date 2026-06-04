@@ -1,7 +1,6 @@
 """Tests for OWID energy data ingestion."""
 
 from pathlib import Path
-from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -38,29 +37,24 @@ class TestGetOwidYearRange:
 
 
 class TestLoadOwidData:
-    @patch("src.data.owid.read_cache")
-    @patch("src.data.owid.write_cache")
-    def test_loads_from_cache(self, mock_write, mock_read):
-        cached_data = [
-            {"iso_code": "IND", "year": 2020, "country": "India",
-             "solar_share_energy": 1.0},
-        ]
-        mock_read.return_value = cached_data
-        result = load_owid_data()
-        assert len(result) == 1
-        assert result["iso_code"].iloc[0] == "IND"
-        mock_write.assert_not_called()
-
-    @patch("src.data.owid.read_cache")
-    def test_cache_miss_loads_csv(self, mock_read):
-        mock_read.return_value = None
+    def test_loads_from_csv(self):
         csv_path = Path(
             "D:/Personal projects/DeltaGrid/data/raw/"
             "owid-energy-data-2010-2025.csv"
         )
-        if csv_path.exists():
-            result = load_owid_data()
-            assert len(result) > 0
-            assert ISO_COL in result.columns
-        else:
+        if not csv_path.exists():
             pytest.skip("OWID CSV not available locally")
+        result = load_owid_data()
+        assert len(result) > 0
+        assert ISO_COL in result.columns
+        assert "year" in result.columns
+
+    def test_filters_aggregates(self):
+        csv_path = Path(
+            "D:/Personal projects/DeltaGrid/data/raw/"
+            "owid-energy-data-2010-2025.csv"
+        )
+        if not csv_path.exists():
+            pytest.skip("OWID CSV not available locally")
+        result = load_owid_data()
+        assert "World" not in result["country"].values

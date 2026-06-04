@@ -5,8 +5,8 @@ import streamlit as st
 from app.components.sidebar import render_sidebar
 from app.components.tables import render_ranking_table
 from app.components.ui import render_error_state, render_page_header
-from app.pages._shared import cached_analysis
-from src.data.owid import get_owid_year_range, load_owid_data
+from app.pages._shared import cached_analysis, load_energy_data
+from src.data.owid import get_owid_year_range
 from src.models.ranking import (
     get_hidden_champions,
     get_laggards,
@@ -24,10 +24,7 @@ render_page_header(
 )
 
 with st.spinner("Loading energy data..."):
-    if "uploaded_df" in st.session_state:
-        energy_df = st.session_state["uploaded_df"]
-    else:
-        energy_df = load_owid_data()
+    energy_df = load_energy_data()
 year_range = get_owid_year_range(energy_df)
 weights, selected_year = render_sidebar(year_range)
 

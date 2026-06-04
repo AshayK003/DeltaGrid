@@ -19,11 +19,11 @@ render_page_header(
 st.header("Green Score", anchor="green-score")
 st.markdown("""
 The **Green Score** (0-100) measures how clean a country's energy mix is.
-It is computed as a weighted sum of energy share columns, normalized to 0-100:
+It is the weighted sum of energy share columns divided by the highest weight:
 """)
 
 st.code(
-    "green_score = (weight_i * share_i) / max(weight_i * share_i) * 100",
+    "green_score = Σ(weight_i × share_i) / max(all_weights)",
     language=None,
 )
 

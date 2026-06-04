@@ -1,12 +1,20 @@
 """DeltaGrid — Paris Agreement NDC vs energy trajectory gap analysis."""
 
+import logging
+
 import streamlit as st
 
-from app.components.choropleth import render_choropleth
+from app.components.choropleth import compute_percentile_range, render_choropleth
 from app.components.sidebar import render_sidebar
 from app.components.ui import render_footer, render_page_header
-from src.data.owid import get_owid_year_range, load_owid_data
+from app.pages._shared import load_energy_data
+from src.data.owid import get_owid_year_range
 from src.models.scoring import compute_green_score
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+)
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -21,44 +29,9 @@ def inject_custom_css() -> None:
     st.markdown(
         """
         <style>
-        /* Skeleton shimmer animation */
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .skeleton {
-            background: linear-gradient(90deg,
-                #1A1F2E 25%, #252B3B 50%, #1A1F2E 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 6px;
-            min-height: 200px;
-        }
-
         /* Respect reduced motion preference */
         @media (prefers-reduced-motion: reduce) {
-            .skeleton { animation: none; }
             * { transition-duration: 0.01ms !important; }
-        }
-
-        /* Card container for metrics */
-        .metric-card {
-            background: #1A1F2E;
-            border: 1px solid #2D3548;
-            border-radius: 8px;
-            padding: 16px 20px;
-        }
-        .metric-card .stMetric {
-            background: transparent;
-        }
-
-        /* Section container */
-        .section-container {
-            background: #1A1F2E;
-            border: 1px solid #2D3548;
-            border-radius: 8px;
-            padding: 20px 24px;
-            margin-bottom: 16px;
         }
 
         /* Status badge */
@@ -160,10 +133,7 @@ render_page_header(
 )
 
 with st.spinner("Loading energy data..."):
-    if "uploaded_df" in st.session_state:
-        energy_df = st.session_state["uploaded_df"]
-    else:
-        energy_df = load_owid_data()
+    energy_df = load_energy_data()
 
 year_range = get_owid_year_range(energy_df)
 weights, selected_year = render_sidebar(year_range)
@@ -172,10 +142,13 @@ weights_key = tuple(sorted(weights.items()))
 scored_df = _cached_score(energy_df, weights_key)
 year_df = scored_df[scored_df["year"] == selected_year].copy()
 
+score_vmin, score_vmax = compute_percentile_range(year_df["green_score"])
 render_choropleth(
     year_df,
     "green_score",
     f"Green Score ({selected_year})",
+    vmin=score_vmin,
+    vmax=score_vmax,
 )
 
 # Metrics in card containers

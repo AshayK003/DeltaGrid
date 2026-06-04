@@ -11,7 +11,7 @@
   </p>
   <p>
     <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
-    <img src="https://img.shields.io/badge/tests-105%20passing-brightgreen" alt="105 tests passing">
+    <img src="https://img.shields.io/badge/tests-138%20passing-brightgreen" alt="138 tests passing">
     <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
     <img src="https://img.shields.io/badge/dependencies-5-lightgrey" alt="5 dependencies">
   </p>
@@ -80,10 +80,9 @@ Sidebar (weights, year)
 |----------|-----------|
 | **5 dependencies only** | streamlit, plotly, pandas, requests, numpy. No geopandas, no paid APIs, no heavy frameworks |
 | **Plotly px.choropleth, not geopandas** | GeoJSON bundling is fragile; Plotly's built-in country outlines cover 200+ countries with zero setup |
-| **Absolute green score normalization** | `score / total_weight` instead of `score / score.max() * 100`. The old relative normalization made slider changes invisible (top country always scored 100). Absolute scores give meaningful 0–100 values that shift when weights change |
+| **Green score normalization** | `score / max(all_weights)` instead of `score / score.max() * 100`. Dividing by max weight means 100% from the top source = 100, and slider changes rescale the entire map visibly |
 | **No ORM, no database** | The dataset is small enough (4,500 rows) that pandas in memory is faster and simpler than any persistence layer |
-| **Disk cache with TTL** | OWID CSV (7 days) and Climate Watch API (24 hours). No Redis, no database cache — just JSON files in `data/cache/` |
-| **`@st.cache_data` for Streamlit** | Memoizes scoring, analysis, and choropleth figures across reruns with TTL |
+| **`@st.cache_data` for Streamlit** | Memoizes scoring, analysis, and choropleth figures across reruns. OWID CSV cached via `@st.cache_data(ttl=3600)`, NDC API cached to disk (24h TTL) |
 
 ---
 
@@ -116,7 +115,7 @@ pip install -e ".[dev]"      # dev tools (ruff, mypy, pytest)
 streamlit run app/main.py
 ```
 
-Open [http://localhost:8501](http://localhost:8501). The first load downloads the OWID energy CSV (~45 MB) and caches it locally.
+Open [http://localhost:8501](http://localhost:8501). The first load reads the filtered OWID energy CSV from `data/raw/` (tracked in repo, ~2.4 MB).
 
 ---
 
@@ -126,7 +125,7 @@ Open [http://localhost:8501](http://localhost:8501). The first load downloads th
 
 ```bash
 make install     # pip install -r requirements.txt + dev extras
-make test        # pytest tests/ -v (105 tests)
+make test        # pytest tests/ -v (138 tests)
 make lint        # ruff check src/ app/
 make typecheck   # mypy src/ app/ (strict mode)
 make serve       # streamlit run app/main.py
@@ -145,7 +144,7 @@ DeltaGrid/
 │   │   ├── tables.py       # Ranking tables with conditional formatting
 │   │   └── ui.py           # Shared UI: headers, errors, badges, footer
 │   └── pages/
-│       ├── _shared.py      # Cached analysis wrapper (underscore = hidden from Streamlit)
+│       ├── _shared.py      # Cached analysis wrapper + load_energy_data()
 │       ├── 1_gap_analysis.py
 │       ├── 2_rankings.py
 │       └── 3_methodology.py
@@ -153,17 +152,17 @@ DeltaGrid/
 │   ├── config.py           # Constants, column names, default weights, thresholds
 │   ├── pipeline.py         # AnalysisResult dataclass, run_analysis() orchestrator
 │   ├── data/
-│   │   ├── owid.py         # OWID CSV download, filter, cache read/write
+│   │   ├── owid.py         # OWID CSV download and filtering
 │   │   ├── climate_watch.py# NDC bulk fetch + _parse_ghg_percentage()
 │   │   ├── cache.py        # TTL disk cache (JSON files)
 │   │   ├── country_codes.py# ISO normalization, aggregate detection
 │   │   ├── validators.py   # Schema validation, energy/NDC merge
 │   │   └── upload_preprocessor.py
 │   └── models/
-│       ├── scoring.py      # compute_green_score()
+│       ├── scoring.py      # compute_green_score(weights required)
 │       ├── gap.py          # compute_gap() with vectorized interpolation
 │       └── ranking.py      # classify_gap(), classify_countries()
-├── tests/                  # 105 tests across 9 modules
+├── tests/                  # 138 tests across 10 modules
 ├── data/
 │   ├── raw/                # OWID CSV (gitignored — downloaded on first run)
 │   └── cache/              # JSON cache files (gitignored)
@@ -181,12 +180,12 @@ DeltaGrid/
 ### Green Score formula
 
 ```
-green_score = Σ(share_i × weight_i) / Σ(weight_i)
+green_score = Σ(share_i × weight_i) / max(all_weights)
 ```
 
 - **share_i**: energy source as percentage of total (0–100)
 - **weight_i**: user-adjustable slider (0.0–2.0, default per source)
-- Output is **absolute 0–100** (not relative to data max)
+- Output is **absolute 0–100**: 100 means 100% of energy comes from the highest-weighted source
 
 #### Default weights
 
@@ -249,7 +248,8 @@ pytest tests/ --cov=src --cov-report=term-missing
 | `test_cache.py` | 10 | TTL expiry, corrupted JSON, key sanitization, empty dir |
 | `test_country_codes.py` | 17 | ISO normalization, aggregates, whitespace, mixed case |
 | `test_validators.py` | 12 | Missing fields, partial overlap, empty dicts |
-| `test_owid.py` | 4 | Year range, cache hit/miss |
+| `test_owid.py` | 4 | Year range, CSV loading, aggregate filtering |
+| `test_upload_preprocessor.py` | 33 | Encoding, column normalization, ISO mapping, alternative columns, full pipeline |
 | `test_integration.py` | 8 | End-to-end pipeline, weight-specific rankings, NDC-less countries |
 
 ---
@@ -330,7 +330,7 @@ Column names are normalized (lowercased, snake_cased). Missing ISO codes and agg
 |---------|-------|-----|
 | `ImportError: cannot import name 'X'` | Stale `__pycache__` | `make clean` |
 | Map is all one color | Fixed color range (vmin/vmax) was too wide for data range | Removed in v0.1.3 — now auto-scales |
-| Slider changes don't affect map | Old normalization (`score / max * 100`) compressed all scores to 0–100 regardless of weights | Fixed in v0.1.3 — now uses `score / total_weight` |
+| Slider changes don't affect map | Old normalization (`score / max * 100`) compressed all scores to 0–100 regardless of weights | Fixed v0.1.3: `score / max(all_weights)` — changing max weight rescales all scores visibly |
 | OWID CSV fails to download | Network issue or GitHub rate limit | CSV is cached in `data/raw/` after first successful download |
 | NDC API returns empty | Network issue or API downtime | App continues with gap = green_score for all countries |
 | Uploaded file columns not recognized | Column names don't match expected patterns | Check normalization: names are lowercased, underscores for spaces. Check `_detect_alternative_columns()` in `upload_preprocessor.py` |
