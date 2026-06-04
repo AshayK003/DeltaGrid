@@ -27,8 +27,8 @@ htmlcov/
 # Type checking
 .mypy_cache/
 
-# Data (large files, API responses)
-data/raw/
+# Data — large dynamically downloaded files (not tracked)
+data/raw/owid-energy-data.csv
 data/cache/
 
 # Environment / secrets
