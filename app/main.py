@@ -1,6 +1,11 @@
 """DeltaGrid — Paris Agreement NDC vs energy trajectory gap analysis."""
 
 import logging
+import sys
+from pathlib import Path
+
+# Ensure project root is on sys.path for Streamlit Cloud
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 
