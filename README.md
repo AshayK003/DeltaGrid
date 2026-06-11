@@ -14,6 +14,7 @@
     <img src="https://img.shields.io/badge/tests-138%20passing-brightgreen" alt="138 tests passing">
     <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
     <img src="https://img.shields.io/badge/dependencies-5-lightgrey" alt="5 dependencies">
+    <img src="https://img.shields.io/github/stars/AshayK003/DeltaGrid?logo=github" alt="GitHub Stars">
   </p>
 </div>
 
