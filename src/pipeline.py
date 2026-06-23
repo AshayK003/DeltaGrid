@@ -18,9 +18,6 @@ logger = logging.getLogger(__name__)
 class AnalysisResult:
     """Container for analysis pipeline output."""
 
-    scored_df: pd.DataFrame
-    year_df: pd.DataFrame
-    gap_df: pd.DataFrame
     classified: pd.DataFrame
     selected_year: int
 
@@ -58,9 +55,6 @@ def run_analysis(
     )
 
     return AnalysisResult(
-        scored_df=scored_df,
-        year_df=year_df,
-        gap_df=classified,
         classified=classified,
         selected_year=selected_year,
     )

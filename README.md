@@ -11,7 +11,7 @@
   </p>
   <p>
     <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
-    <img src="https://img.shields.io/badge/tests-138%20passing-brightgreen" alt="138 tests passing">
+    <img src="https://img.shields.io/badge/tests-123%20passing-brightgreen" alt="123 tests passing">
     <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
     <img src="https://img.shields.io/badge/dependencies-5-lightgrey" alt="5 dependencies">
     <img src="https://img.shields.io/github/stars/AshayK003/DeltaGrid?logo=github" alt="GitHub Stars">
@@ -54,7 +54,7 @@ DeltaGrid is an interactive dashboard that calculates the gap between **Paris Ag
 │  ── Computation, scoring, gap, classification    │
 ├─────────────────────────────────────────────────┤
 │                  src/data/                       │
-│  owid.py · climate_watch.py · validators.py      │
+│  owid.py · climate_watch.py      │
 │  cache.py · country_codes.py                     │
 │  upload_preprocessor.py                          │
 │  ── Ingestion, API, caching, preprocessing       │
@@ -126,7 +126,7 @@ Open [http://localhost:8501](http://localhost:8501). The first load reads the fi
 
 ```bash
 make install     # pip install -r requirements.txt + dev extras
-make test        # pytest tests/ -v (138 tests)
+make test        # pytest tests/ -v (123 tests)
 make lint        # ruff check src/ app/
 make typecheck   # mypy src/ app/ (strict mode)
 make serve       # streamlit run app/main.py
@@ -157,13 +157,12 @@ DeltaGrid/
 │   │   ├── climate_watch.py# NDC bulk fetch + _parse_ghg_percentage()
 │   │   ├── cache.py        # TTL disk cache (JSON files)
 │   │   ├── country_codes.py# ISO normalization, aggregate detection
-│   │   ├── validators.py   # Schema validation, energy/NDC merge
 │   │   └── upload_preprocessor.py
 │   └── models/
 │       ├── scoring.py      # compute_green_score(weights required)
 │       ├── gap.py          # compute_gap() with vectorized interpolation
 │       └── ranking.py      # classify_gap(), classify_countries()
-├── tests/                  # 138 tests across 10 modules
+├── tests/                  # 123 tests across 9 modules
 ├── data/
 │   ├── raw/                # OWID CSV (gitignored — downloaded on first run)
 │   └── cache/              # JSON cache files (gitignored)
@@ -248,10 +247,9 @@ pytest tests/ --cov=src --cov-report=term-missing
 | `test_climate_watch.py` | 21 | Percent parser (range/dash/float/keyword), network failures, cache behavior |
 | `test_cache.py` | 10 | TTL expiry, corrupted JSON, key sanitization, empty dir |
 | `test_country_codes.py` | 17 | ISO normalization, aggregates, whitespace, mixed case |
-| `test_validators.py` | 12 | Missing fields, partial overlap, empty dicts |
 | `test_owid.py` | 4 | Year range, CSV loading, aggregate filtering |
 | `test_upload_preprocessor.py` | 33 | Encoding, column normalization, ISO mapping, alternative columns, full pipeline |
-| `test_integration.py` | 8 | End-to-end pipeline, weight-specific rankings, NDC-less countries |
+| `test_integration.py` | 5 | End-to-end pipeline, weight-specific rankings, NDC-less countries |
 
 ---
 

@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 
 from src.config import DEFAULT_WEIGHTS
-from src.data.validators import merge_energy_and_ndc, validate_energy_data
 from src.models.gap import compute_gap
 from src.models.ranking import (
     classify_countries,
@@ -101,25 +100,6 @@ class TestFullPipeline:
             assert row["gap"] == pytest.approx(
                 row["green_score"] - row["expected_trajectory"], abs=0.01
             )
-
-
-class TestValidationAndMerge:
-    """validate_energy_data → merge → validate_ndc_data"""
-
-    def test_merge_preserves_energy_data(self, energy_df, ndc_data):
-        merged = merge_energy_and_ndc(energy_df, ndc_data)
-        assert len(merged) == len(energy_df)
-        assert "ghg_target" in merged.columns
-
-    def test_merge_adds_ndc_fields(self, energy_df, ndc_data):
-        merged = merge_energy_and_ndc(energy_df, ndc_data)
-        ind_row = merged[merged["iso_code"] == "IND"].iloc[0]
-        assert ind_row["ghg_target"] == 47.0
-        assert ind_row["pledge_base_year"] == "2005"
-
-    def test_valid_data_passes_validation(self, energy_df):
-        errors = validate_energy_data(energy_df)
-        assert errors == []
 
 
 class TestScoringToRanking:

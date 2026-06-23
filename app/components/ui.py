@@ -1,4 +1,4 @@
-"""Shared UI components: empty states, error states, headers, badges, footer."""
+"""Shared UI components: empty states, error states, headers, footer."""
 
 from __future__ import annotations
 
@@ -6,30 +6,12 @@ from collections.abc import Callable
 
 import streamlit as st
 
-from src.config import CLASS_LABELS
-
-# Badge CSS class mapping
-_BADGE_CLASSES = {
-    "hidden_champion": "badge-champion",
-    "on_track": "badge-on-track",
-    "slightly_behind": "badge-behind",
-    "laggard": "badge-laggard",
-    "no_data": "badge-no-data",
-}
-
 
 def render_page_header(title: str, description: str | None = None) -> None:
     """Render a consistent page title without emoji."""
     st.title(title)
     if description:
         st.caption(description)
-
-
-def render_section_header(title: str, subtitle: str | None = None) -> None:
-    """Render a section heading with consistent styling."""
-    st.subheader(title)
-    if subtitle:
-        st.caption(subtitle)
 
 
 def render_empty_state(
@@ -69,15 +51,6 @@ def render_error_state(
         if st.button("Retry", key=f"retry_{title}"):
             retry_fn()
             st.rerun()
-
-
-def render_status_badge(classification: str) -> str:
-    """Return HTML for a classification status badge."""
-    css_class = _BADGE_CLASSES.get(classification, "badge-no-data")
-    label = CLASS_LABELS.get(classification, classification.replace("_", " ").title())
-    return (
-        f'<span class="status-badge {css_class}">{label}</span>'
-    )
 
 
 def render_country_count(count: int) -> None:
