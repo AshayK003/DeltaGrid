@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def _vectorized_trajectory(
-    base_values: np.ndarray,
     target_values: np.ndarray,
     base_years: np.ndarray,
     target_years: np.ndarray,
@@ -34,9 +33,7 @@ def _vectorized_trajectory(
     )
     progress = np.clip(progress, 0.0, 1.0)
 
-    result[valid] = base_values[valid] + (
-        target_values[valid] - base_values[valid]
-    ) * progress[valid]
+    result[valid] = target_values[valid] * progress[valid]
 
     # Same-year case: use target value directly
     same_year = (target_years == base_years) & (target_years > 0)
@@ -92,7 +89,7 @@ def compute_gap(
 
     # Vectorized trajectory computation
     result["expected_trajectory"] = _vectorized_trajectory(
-        np.zeros(n), target_values, base_years, target_years, current_year
+        target_values, base_years, target_years, current_year
     )
 
     # Handle NaN green scores

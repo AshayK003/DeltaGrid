@@ -303,7 +303,7 @@ Column names are normalized (lowercased, snake_cased). Missing ISO codes and agg
 
 ## Contributing
 
-1. **Read AGENTS.md** — contains the full agent context with all conventions, bug history, and design rationale
+1. **Read the project structure** — review `src/` and `app/` to understand the architecture before making changes
 2. **Open an issue** first for any non-trivial change
 3. **Branch** from `master`: `git checkout -b feat/your-feature`
 4. **Write tests first** for new functions (fixtures, edge cases, error paths)
@@ -312,6 +312,22 @@ Column names are normalized (lowercased, snake_cased). Missing ISO codes and agg
    make lint && make typecheck && make test
    ```
 6. **Keep dependencies lean** — no new dependency without discussion. The 5-dependency constraint is deliberate
+
+---
+
+## Code Audit
+
+DeltaGrid underwent a Ponytail Audit to identify dead code and unnecessary flexibility:
+
+| Tag | Finding | Action |
+|-----|---------|--------|
+| P0 | 5 dead functions in `ui.py` & `validators.py` (`render_section_header`, `render_status_badge`, `validate_energy_data`, `validate_ndc_data`, `merge_energy_and_ndc`) | Removed |
+| P0 | `validators.py` module — all functions were remnants of earlier upload preprocessing | Deleted |
+| P1 | `AnalysisResult` had 3 unused DataFrame fields (`scored_df`, `year_df`, `gap_df`) — duplicates of `classified` | Trimmed to 2 fields |
+| P2 | `get_laggards(df, min_gap=-100)` — `min_gap` never customized at any call site | Parameter removed |
+| P2 | `_vectorized_trajectory(base_values, ...)` — always called with `np.zeros(n)` | Parameter inlined |
+
+**Net result:** ~60 lines removed, 3 functions deleted, 2 parameters eliminated, 3 dataclass fields trimmed. All 123 tests pass with no regressions.
 
 ### Code style
 

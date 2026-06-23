@@ -39,10 +39,9 @@ def classify_countries(df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-def get_laggards(df: pd.DataFrame, min_gap: float = -100) -> pd.DataFrame:
+def get_laggards(df: pd.DataFrame) -> pd.DataFrame:
     """Return laggard countries sorted by gap (worst first)."""
     lag = df[df["classification"] == "laggard"].copy()
-    lag = lag[lag["gap"] >= min_gap]
     return lag.sort_values("gap", ascending=True)
 
 
