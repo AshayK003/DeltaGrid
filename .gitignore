@@ -36,7 +36,6 @@ data/cache/
 .env.local
 
 # Agent context (local only)
-AGENTS.md
 
 # Logs
 *.log
