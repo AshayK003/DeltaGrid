@@ -1,6 +1,8 @@
 """Tests for disk cache."""
 
+import json
 import time
+from unittest.mock import patch
 
 import pytest
 
@@ -80,3 +82,32 @@ def test_clear_cache_empty_dir():
     clear_cache()
     count = clear_cache()
     assert count == 0
+
+
+def test_write_cache_creates_new_file():
+    write_cache("brand_new_key", {"a": 1, "b": [2, 3]})
+    path = CACHE_DIR / "brand_new_key.json"
+    assert path.exists()
+    assert json.loads(path.read_text(encoding="utf-8")) == {"a": 1, "b": [2, 3]}
+
+
+def test_write_cache_overwrites_existing():
+    write_cache("dup_key", {"version": 1})
+    write_cache("dup_key", {"version": 2})
+    assert read_cache("dup_key", ttl=60) == {"version": 2}
+
+
+def test_write_cache_creates_cache_dir(tmp_path, monkeypatch):
+    target_dir = tmp_path / "nested" / "cache"
+    monkeypatch.setattr("src.data.cache.CACHE_DIR", target_dir)
+    assert not target_dir.exists()
+    write_cache("dir_key", {"x": 1})
+    assert target_dir.exists()
+    assert (target_dir / "dir_key.json").exists()
+
+
+def test_write_cache_swallows_write_error():
+    with patch("pathlib.Path.write_text", side_effect=OSError("permission denied")):
+        result = write_cache("perm_denied", {"x": 1})
+    assert result is None
+    assert read_cache("perm_denied", ttl=60) is None

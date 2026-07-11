@@ -32,6 +32,19 @@ class TestNormalizeIso3:
     def test_mixed_case_with_spaces(self):
         assert normalize_iso3("  Usa  ") == "USA"
 
+    def test_unknown_code_passthrough(self):
+        # No validation or fallback lookup: unknown codes pass through.
+        assert normalize_iso3("xyz") == "XYZ"
+
+    def test_whitespace_only(self):
+        assert normalize_iso3("   ") == ""
+
+    def test_non_string_float_nan(self):
+        assert normalize_iso3(float("nan")) == ""
+
+    def test_non_string_list(self):
+        assert normalize_iso3(["IND"]) == ""
+
 
 class TestIsAggregate:
     def test_world_is_aggregate(self):

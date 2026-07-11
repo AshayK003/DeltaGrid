@@ -1,12 +1,13 @@
 """Tests for OWID energy data ingestion."""
 
-from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
+import requests
 
-from src.config import ISO_COL
-from src.data.owid import get_owid_year_range, load_owid_data
+from src.config import ISO_COL, OWID_CSV
+from src.data.owid import download_owid_csv, get_owid_year_range, load_owid_data
 
 
 @pytest.fixture
@@ -38,11 +39,7 @@ class TestGetOwidYearRange:
 
 class TestLoadOwidData:
     def test_loads_from_csv(self):
-        csv_path = Path(
-            "D:/Personal projects/DeltaGrid/data/raw/"
-            "owid-energy-data-2010-2025.csv"
-        )
-        if not csv_path.exists():
+        if not OWID_CSV.exists():
             pytest.skip("OWID CSV not available locally")
         result = load_owid_data()
         assert len(result) > 0
@@ -50,11 +47,67 @@ class TestLoadOwidData:
         assert "year" in result.columns
 
     def test_filters_aggregates(self):
-        csv_path = Path(
-            "D:/Personal projects/DeltaGrid/data/raw/"
-            "owid-energy-data-2010-2025.csv"
-        )
-        if not csv_path.exists():
+        if not OWID_CSV.exists():
             pytest.skip("OWID CSV not available locally")
         result = load_owid_data()
         assert "World" not in result["country"].values
+
+
+class TestDownloadOwidCsv:
+    def test_returns_existing_without_network(self, tmp_path, monkeypatch):
+        target = tmp_path / "owid.csv"
+        target.write_bytes(b"cached,data\n")
+        monkeypatch.setattr("src.data.owid.OWID_CSV", target)
+        with patch("src.data.owid.requests.get") as mock_get:
+            result = download_owid_csv()
+        assert result == target
+        mock_get.assert_not_called()
+
+    @patch("src.data.owid.requests.get")
+    def test_downloads_and_writes_bytes(self, mock_get, tmp_path, monkeypatch):
+        target = tmp_path / "raw" / "owid.csv"  # parent absent -> exercises mkdir
+        monkeypatch.setattr("src.data.owid.OWID_CSV", target)
+        mock_resp = MagicMock()
+        mock_resp.content = b"iso_code,year\nIND,2020\n"
+        mock_resp.raise_for_status = MagicMock()
+        mock_get.return_value = mock_resp
+
+        result = download_owid_csv()
+
+        assert result == target
+        assert target.read_bytes() == b"iso_code,year\nIND,2020\n"
+        mock_get.assert_called_once()
+
+    @patch("src.data.owid.requests.get")
+    def test_empty_response_writes_empty_file(self, mock_get, tmp_path, monkeypatch):
+        target = tmp_path / "owid.csv"
+        monkeypatch.setattr("src.data.owid.OWID_CSV", target)
+        mock_resp = MagicMock()
+        mock_resp.content = b""
+        mock_resp.raise_for_status = MagicMock()
+        mock_get.return_value = mock_resp
+
+        result = download_owid_csv()
+
+        assert result == target
+        assert target.exists()
+        assert target.read_bytes() == b""
+
+    @patch("src.data.owid.requests.get")
+    def test_network_failure_propagates(self, mock_get, tmp_path, monkeypatch):
+        target = tmp_path / "owid.csv"
+        monkeypatch.setattr("src.data.owid.OWID_CSV", target)
+        mock_get.side_effect = requests.ConnectionError("no network")
+        with pytest.raises(requests.RequestException):
+            download_owid_csv()
+        assert not target.exists()
+
+    @patch("src.data.owid.requests.get")
+    def test_http_error_propagates(self, mock_get, tmp_path, monkeypatch):
+        target = tmp_path / "owid.csv"
+        monkeypatch.setattr("src.data.owid.OWID_CSV", target)
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.side_effect = requests.HTTPError("404")
+        mock_get.return_value = mock_resp
+        with pytest.raises(requests.RequestException):
+            download_owid_csv()
