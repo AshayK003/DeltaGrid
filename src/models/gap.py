@@ -92,8 +92,9 @@ def compute_gap(
         target_values, base_years, target_years, current_year
     )
 
-    # Handle NaN green scores
-    actual = result["green_score"].fillna(0.0)
+    # Handle NaN green scores; coerce to numeric so an empty frame (whose
+    # columns default to object dtype) still yields a numeric gap.
+    actual = pd.to_numeric(result["green_score"], errors="coerce").fillna(0.0)
     result["gap"] = (actual - result["expected_trajectory"]).round(2)
     result["expected_trajectory"] = result["expected_trajectory"].round(2)
 
