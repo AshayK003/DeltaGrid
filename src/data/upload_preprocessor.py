@@ -6,6 +6,7 @@ import io
 import logging
 import re
 from dataclasses import dataclass
+from typing import BinaryIO
 
 import pandas as pd
 
@@ -35,7 +36,7 @@ class PreprocessResult:
     warnings: list[str]
 
 
-def _read_file(uploaded_file) -> pd.DataFrame | None:
+def _read_file(uploaded_file: BinaryIO) -> pd.DataFrame | None:
     """Read a CSV or XLSX file into a DataFrame.
 
     Handles the file stream position correctly for Streamlit's
