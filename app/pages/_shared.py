@@ -28,6 +28,10 @@ def cached_analysis(
 
 
 @st.cache_data(show_spinner="Running analysis...", hash_funcs={tuple: lambda x: x})
-def _run(weights_key, selected_year: int, energy_df) -> AnalysisResult:
+def _run(
+    weights_key: tuple[tuple[str, float], ...],
+    selected_year: int,
+    energy_df: pd.DataFrame,
+) -> AnalysisResult:
     weights = dict(weights_key)
     return run_analysis(weights, selected_year, energy_df=energy_df)
