@@ -50,4 +50,4 @@ jobs:
         run: uv run pytest tests/ -v --tb=short -q
 
       - name: Type check (mypy)
-        run: uv run mypy src/
+        run: uv run mypy src/ --exclude .venv
