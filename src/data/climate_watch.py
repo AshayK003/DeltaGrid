@@ -90,7 +90,7 @@ def fetch_all_ndcs() -> dict[str, dict]:
     """Fetch all NDCs in a single API call. Returns iso3 → ndc_info."""
     cache_key = "ndc_all_bulk"
     cached = read_cache(cache_key, CACHE_TTL_API)
-    if cached is not None:
+    if cached is not None and isinstance(cached, dict):
         logger.info("Loaded NDCs from cache (%d countries)", len(cached))
         return cached
 
