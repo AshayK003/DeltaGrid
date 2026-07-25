@@ -27,7 +27,7 @@ select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["N999"]  # Streamlit pages use numbered prefixes
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = false
 warn_return_any = true
 warn_unused_configs = true
@@ -37,7 +37,7 @@ exclude = [
 ]
 
 [tool.mypy-overrides]
-# Ignore numpy type stub issues (requires Python 3.12+ syntax)
+# Ignore numpy type stub issues
 module = "numpy.*"
 ignore_missing_imports = true
 
