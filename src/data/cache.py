@@ -29,7 +29,10 @@ def read_cache(key: str, ttl: int) -> dict | list | None:
         logger.debug("Cache expired for key=%s age=%.0fs", key, age)
         return None
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, (dict, list)):
+            return data
+        return None
     except (json.JSONDecodeError, OSError) as e:
         logger.warning("Cache read failed for key=%s: %s", key, e)
         return None
