@@ -12,18 +12,20 @@ from src.data.owid import download_owid_csv, get_owid_year_range, load_owid_data
 
 @pytest.fixture
 def sample_df():
-    return pd.DataFrame({
-        "iso_code": ["IND", "IND", "USA", "USA"],
-        "year": [2020, 2021, 2020, 2021],
-        "country": ["India", "India", "United States", "United States"],
-        "solar_share_energy": [1.0, 1.5, 2.0, 3.0],
-        "wind_share_energy": [0.5, 0.7, 3.5, 4.0],
-        "hydro_share_energy": [10.0, 10.5, 6.0, 6.5],
-        "nuclear_share_energy": [1.2, 1.3, 8.0, 8.5],
-        "gas_share_energy": [5.0, 5.2, 32.0, 33.0],
-        "coal_share_energy": [44.0, 43.0, 19.0, 18.0],
-        "primary_energy_consumption": [100, 110, 200, 210],
-    })
+    return pd.DataFrame(
+        {
+            "iso_code": ["IND", "IND", "USA", "USA"],
+            "year": [2020, 2021, 2020, 2021],
+            "country": ["India", "India", "United States", "United States"],
+            "solar_share_energy": [1.0, 1.5, 2.0, 3.0],
+            "wind_share_energy": [0.5, 0.7, 3.5, 4.0],
+            "hydro_share_energy": [10.0, 10.5, 6.0, 6.5],
+            "nuclear_share_energy": [1.2, 1.3, 8.0, 8.5],
+            "gas_share_energy": [5.0, 5.2, 32.0, 33.0],
+            "coal_share_energy": [44.0, 43.0, 19.0, 18.0],
+            "primary_energy_consumption": [100, 110, 200, 210],
+        }
+    )
 
 
 class TestGetOwidYearRange:

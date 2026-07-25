@@ -11,10 +11,7 @@ CACHE_DIR = DATA_DIR / "cache"
 OWID_CSV = RAW_DIR / "owid-energy-data-2010-2025.csv"
 
 # --- URLs ---
-OWID_URL = (
-    "https://github.com/owid/energy-data/raw/master/"
-    "owid-energy-data.csv"
-)
+OWID_URL = "https://github.com/owid/energy-data/raw/master/owid-energy-data.csv"
 CLIMATE_WATCH_NDC_URL = "https://www.climatewatchdata.org/api/v1/ndcs"
 
 # --- Year range ---
@@ -46,18 +43,20 @@ ENERGY_ABSOLUTE_COLS = [
 ]
 
 # --- Green score default weights (frozen) ---
-DEFAULT_WEIGHTS: MappingProxyType[str, float] = MappingProxyType({
-    "solar_share_energy": 1.0,
-    "wind_share_energy": 1.0,
-    "hydro_share_energy": 1.0,
-    "nuclear_share_energy": 0.5,
-    "gas_share_energy": 0.2,
-    "coal_share_energy": 0.0,
-})
+DEFAULT_WEIGHTS: MappingProxyType[str, float] = MappingProxyType(
+    {
+        "solar_share_energy": 1.0,
+        "wind_share_energy": 1.0,
+        "hydro_share_energy": 1.0,
+        "nuclear_share_energy": 0.5,
+        "gas_share_energy": 0.2,
+        "coal_share_energy": 0.0,
+    }
+)
 
 # --- Cache TTL (seconds) ---
-CACHE_TTL_API = 24 * 60 * 60       # 24 hours
-CACHE_TTL_CSV = 7 * 24 * 60 * 60   # 7 days
+CACHE_TTL_API = 24 * 60 * 60  # 24 hours
+CACHE_TTL_CSV = 7 * 24 * 60 * 60  # 7 days
 
 # --- Gap classification thresholds ---
 CLASS_THRESHOLDS = {

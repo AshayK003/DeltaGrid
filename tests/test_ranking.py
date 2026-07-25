@@ -28,50 +28,58 @@ def test_classify_gap_laggard():
 
 
 def test_classify_countries_adds_column():
-    df = pd.DataFrame({
-        "iso_code": ["A", "B"],
-        "year": [2022, 2022],
-        "country": ["A", "B"],
-        "gap": [10.0, -10.0],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["A", "B"],
+            "year": [2022, 2022],
+            "country": ["A", "B"],
+            "gap": [10.0, -10.0],
+        }
+    )
     result = classify_countries(df)
     assert "classification" in result.columns
     assert result["classification"].tolist() == ["hidden_champion", "laggard"]
 
 
 def test_get_laggards():
-    df = pd.DataFrame({
-        "iso_code": ["A", "B", "C"],
-        "year": [2022, 2022, 2022],
-        "country": ["A", "B", "C"],
-        "gap": [10.0, -10.0, -20.0],
-        "classification": ["hidden_champion", "laggard", "laggard"],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["A", "B", "C"],
+            "year": [2022, 2022, 2022],
+            "country": ["A", "B", "C"],
+            "gap": [10.0, -10.0, -20.0],
+            "classification": ["hidden_champion", "laggard", "laggard"],
+        }
+    )
     result = get_laggards(df)
     assert len(result) == 2
     assert result.iloc[0]["iso_code"] == "C"
 
 
 def test_get_hidden_champions():
-    df = pd.DataFrame({
-        "iso_code": ["A", "B"],
-        "year": [2022, 2022],
-        "country": ["A", "B"],
-        "gap": [15.0, 5.0],
-        "classification": ["hidden_champion", "hidden_champion"],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["A", "B"],
+            "year": [2022, 2022],
+            "country": ["A", "B"],
+            "gap": [15.0, 5.0],
+            "classification": ["hidden_champion", "hidden_champion"],
+        }
+    )
     result = get_hidden_champions(df)
     assert len(result) == 2
     assert result.iloc[0]["iso_code"] == "A"
 
 
 def test_get_rankings_sorted():
-    df = pd.DataFrame({
-        "iso_code": ["A", "B", "C"],
-        "year": [2022, 2022, 2022],
-        "country": ["A", "B", "C"],
-        "gap": [-5.0, 10.0, 0.0],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["A", "B", "C"],
+            "year": [2022, 2022, 2022],
+            "country": ["A", "B", "C"],
+            "gap": [-5.0, 10.0, 0.0],
+        }
+    )
     result = get_rankings(df)
     assert result.iloc[0]["iso_code"] == "B"
     assert result.iloc[-1]["iso_code"] == "A"
@@ -98,35 +106,41 @@ def test_classify_gap_boundary_negative_six():
 
 
 def test_classify_countries_no_gap_column():
-    df = pd.DataFrame({
-        "iso_code": ["A"],
-        "year": [2022],
-        "country": ["A"],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["A"],
+            "year": [2022],
+            "country": ["A"],
+        }
+    )
     result = classify_countries(df)
     assert all(result["classification"] == "no_data")
 
 
 def test_get_laggards_empty():
-    df = pd.DataFrame({
-        "iso_code": ["A"],
-        "year": [2022],
-        "country": ["A"],
-        "gap": [10.0],
-        "classification": ["hidden_champion"],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["A"],
+            "year": [2022],
+            "country": ["A"],
+            "gap": [10.0],
+            "classification": ["hidden_champion"],
+        }
+    )
     result = get_laggards(df)
     assert len(result) == 0
 
 
 def test_get_hidden_champions_empty():
-    df = pd.DataFrame({
-        "iso_code": ["A"],
-        "year": [2022],
-        "country": ["A"],
-        "gap": [-10.0],
-        "classification": ["laggard"],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["A"],
+            "year": [2022],
+            "country": ["A"],
+            "gap": [-10.0],
+            "classification": ["laggard"],
+        }
+    )
     result = get_hidden_champions(df)
     assert len(result) == 0
 

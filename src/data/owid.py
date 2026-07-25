@@ -67,9 +67,7 @@ def load_owid_data() -> pd.DataFrame:
             df[col] = pd.to_numeric(df[col], errors="coerce")
             new_nan = df[col].isna().sum() - before_nan
             if new_nan > 0:
-                logger.warning(
-                    "Column %s: %d values coerced to NaN", col, new_nan
-                )
+                logger.warning("Column %s: %d values coerced to NaN", col, new_nan)
 
     logger.info(
         "Filtered OWID data: %d rows, years %s-%s",
@@ -86,6 +84,3 @@ def get_owid_year_range(df: pd.DataFrame) -> tuple[int, int]:
     if df.empty:
         return (0, 0)
     return int(df[YEAR_COL].min()), int(df[YEAR_COL].max())
-
-
-

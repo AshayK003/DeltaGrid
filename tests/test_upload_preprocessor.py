@@ -13,6 +13,7 @@ from src.data.upload_preprocessor import (
 
 # --- _normalize_columns ---
 
+
 def test_normalize_columns_strips_whitespace():
     df = pd.DataFrame({"  ISO Code  ": ["IND"], "  Year  ": [2020]})
     result = _normalize_columns(df)
@@ -39,6 +40,7 @@ def test_normalize_columns_empty():
 
 
 # --- _coerce_numeric ---
+
 
 def test_coerce_numeric_converts_valid():
     df = pd.DataFrame({"val": ["1.5", "2.0", "3.7"]})
@@ -74,6 +76,7 @@ def test_coerce_numeric_empty_df():
 
 # --- _detect_alternative_columns ---
 
+
 def test_detect_alternative_solar():
     df = pd.DataFrame({"solar": [1.0]})
     mapping = _detect_alternative_columns(df)
@@ -99,15 +102,18 @@ def test_detect_alternative_no_match():
 
 
 def test_detect_alternative_skips_existing():
-    df = pd.DataFrame({
-        "solar_share_energy": [1.0],
-        "solar": [1.0],
-    })
+    df = pd.DataFrame(
+        {
+            "solar_share_energy": [1.0],
+            "solar": [1.0],
+        }
+    )
     mapping = _detect_alternative_columns(df)
     assert "solar" not in mapping
 
 
 # --- _read_file ---
+
 
 class _MockUpload:
     def __init__(self, data: bytes, name: str):
@@ -166,6 +172,7 @@ def test_read_file_seek_reset():
 
 
 # --- preprocess_upload ---
+
 
 def _make_upload(csv_text: str, name: str = "test.csv") -> _MockUpload:
     return _MockUpload(_make_csv_bytes(csv_text), name)
@@ -273,8 +280,7 @@ def test_preprocess_no_valid_rows_after_processing():
 
 def test_preprocess_keeps_extra_columns():
     csv = (
-        "iso_code,year,country,solar_share_energy,extra_col\n"
-        "IND,2020,India,5.0,hello\n"
+        "iso_code,year,country,solar_share_energy,extra_col\nIND,2020,India,5.0,hello\n"
     )
     result = preprocess_upload(_make_upload(csv))
     assert "extra_col" not in result.df.columns

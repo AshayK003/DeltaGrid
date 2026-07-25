@@ -1,6 +1,5 @@
 """Tests for country code mapping and aggregate detection."""
 
-
 from src.data.country_codes import AGGREGATE_NAMES, is_aggregate, normalize_iso3
 
 

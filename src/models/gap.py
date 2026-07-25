@@ -20,16 +20,11 @@ def _vectorized_trajectory(
     result = np.zeros_like(target_values, dtype=float)
 
     # Avoid division by zero; also treat year 0 as invalid
-    valid = (
-        (target_years != base_years)
-        & (target_years > 0)
-        & (base_years > 0)
-    )
+    valid = (target_years != base_years) & (target_years > 0) & (base_years > 0)
 
     progress = np.zeros_like(target_values, dtype=float)
-    progress[valid] = (
-        (current_year - base_years[valid])
-        / (target_years[valid] - base_years[valid])
+    progress[valid] = (current_year - base_years[valid]) / (
+        target_years[valid] - base_years[valid]
     )
     progress = np.clip(progress, 0.0, 1.0)
 
@@ -84,7 +79,10 @@ def compute_gap(
         except (ValueError, TypeError) as e:
             logger.warning(
                 "Invalid NDC years for %s: base=%s target=%s: %s",
-                iso, base_year, target_year, e,
+                iso,
+                base_year,
+                target_year,
+                e,
             )
 
     # Vectorized trajectory computation

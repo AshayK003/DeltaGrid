@@ -40,9 +40,7 @@ def write_cache(key: str, data: dict | list) -> None:
     _ensure_cache_dir()
     path = _cache_path(key)
     try:
-        path.write_text(
-            json.dumps(data, default=str), encoding="utf-8"
-        )
+        path.write_text(json.dumps(data, default=str), encoding="utf-8")
     except OSError as e:
         logger.warning("Cache write failed for key=%s: %s", key, e)
 

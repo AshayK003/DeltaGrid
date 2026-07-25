@@ -16,20 +16,26 @@ from src.models.scoring import compute_green_score
 
 @pytest.fixture
 def energy_df():
-    return pd.DataFrame({
-        "iso_code": ["IND", "IND", "USA", "USA", "CHN", "CHN"],
-        "year": [2020, 2021, 2020, 2021, 2020, 2021],
-        "country": [
-            "India", "India", "United States",
-            "United States", "China", "China",
-        ],
-        "solar_share_energy": [1.0, 1.5, 2.0, 3.0, 1.5, 2.0],
-        "wind_share_energy": [0.5, 0.7, 3.5, 4.0, 1.0, 1.5],
-        "hydro_share_energy": [10.0, 10.5, 6.0, 6.5, 8.0, 8.5],
-        "nuclear_share_energy": [1.2, 1.3, 8.0, 8.5, 3.0, 3.2],
-        "gas_share_energy": [5.0, 5.2, 32.0, 33.0, 8.0, 8.5],
-        "coal_share_energy": [44.0, 43.0, 19.0, 18.0, 55.0, 54.0],
-    })
+    return pd.DataFrame(
+        {
+            "iso_code": ["IND", "IND", "USA", "USA", "CHN", "CHN"],
+            "year": [2020, 2021, 2020, 2021, 2020, 2021],
+            "country": [
+                "India",
+                "India",
+                "United States",
+                "United States",
+                "China",
+                "China",
+            ],
+            "solar_share_energy": [1.0, 1.5, 2.0, 3.0, 1.5, 2.0],
+            "wind_share_energy": [0.5, 0.7, 3.5, 4.0, 1.0, 1.5],
+            "hydro_share_energy": [10.0, 10.5, 6.0, 6.5, 8.0, 8.5],
+            "nuclear_share_energy": [1.2, 1.3, 8.0, 8.5, 3.0, 3.2],
+            "gas_share_energy": [5.0, 5.2, 32.0, 33.0, 8.0, 8.5],
+            "coal_share_energy": [44.0, 43.0, 19.0, 18.0, 55.0, 54.0],
+        }
+    )
 
 
 @pytest.fixture

@@ -130,6 +130,7 @@ class TestFetchAllNdc:
     @patch("src.data.climate_watch.requests.get")
     def test_bulk_fetch_network_failure(self, mock_get):
         import requests
+
         mock_get.side_effect = requests.RequestException("timeout")
         result = fetch_all_ndcs()
         assert result == {}
@@ -156,13 +157,15 @@ class TestFetchAllNdc:
     def test_cached_second_call(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.json.return_value = {
-            "data": [{
-                "iso_code3": "USA",
-                "ndc_text": "US NDC",
-                "indicators": [
-                    {"name": "GHG Target", "value": "50%"},
-                ],
-            }]
+            "data": [
+                {
+                    "iso_code3": "USA",
+                    "ndc_text": "US NDC",
+                    "indicators": [
+                        {"name": "GHG Target", "value": "50%"},
+                    ],
+                }
+            ]
         }
         mock_resp.raise_for_status = MagicMock()
         mock_get.return_value = mock_resp

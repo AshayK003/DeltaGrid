@@ -91,9 +91,7 @@ def _coerce_numeric(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
             result[col] = pd.to_numeric(result[col], errors="coerce")
             new_nan = result[col].isna().sum() - before_nan
             if new_nan > 0:
-                logger.warning(
-                    "Column %s: %d values coerced to NaN", col, new_nan
-                )
+                logger.warning("Column %s: %d values coerced to NaN", col, new_nan)
     return result
 
 
@@ -120,7 +118,9 @@ def preprocess_upload(uploaded_file) -> PreprocessResult:
 
     logger.info(
         "Read uploaded file %s: %d rows, %d columns",
-        uploaded_file.name, len(df), len(df.columns),
+        uploaded_file.name,
+        len(df),
+        len(df.columns),
     )
 
     # Step 2: Normalize column names
@@ -142,9 +142,7 @@ def preprocess_upload(uploaded_file) -> PreprocessResult:
         alt_mapping = _detect_alternative_columns(df)
         if alt_mapping:
             df = df.rename(columns=alt_mapping)
-            share_present = [
-                c for c in ENERGY_SHARE_COLS if c in df.columns
-            ]
+            share_present = [c for c in ENERGY_SHARE_COLS if c in df.columns]
             warnings.append(f"Renamed columns: {alt_mapping}")
 
         if len(share_present) < _MIN_SHARE_COLS:
@@ -194,9 +192,7 @@ def preprocess_upload(uploaded_file) -> PreprocessResult:
     if COUNTRY_COL in df.columns:
         idx_cols.append(COUNTRY_COL)
     all_numeric = ENERGY_SHARE_COLS + ENERGY_ABSOLUTE_COLS
-    keep_cols = idx_cols + [
-        c for c in all_numeric if c in df.columns
-    ]
+    keep_cols = idx_cols + [c for c in all_numeric if c in df.columns]
     df = df[[c for c in keep_cols if c in df.columns]].copy()
 
     if df.empty:
@@ -218,28 +214,52 @@ def _detect_alternative_columns(df: pd.DataFrame) -> dict[str, str]:
     mapping = {}
     alternatives = {
         "solar_share_energy": [
-            "solar", "solar_share", "solar_pct", "solar_percent",
-            "renewable_solar", "solar_share_of_energy",
+            "solar",
+            "solar_share",
+            "solar_pct",
+            "solar_percent",
+            "renewable_solar",
+            "solar_share_of_energy",
         ],
         "wind_share_energy": [
-            "wind", "wind_share", "wind_pct", "wind_percent",
-            "renewable_wind", "wind_share_of_energy",
+            "wind",
+            "wind_share",
+            "wind_pct",
+            "wind_percent",
+            "renewable_wind",
+            "wind_share_of_energy",
         ],
         "hydro_share_energy": [
-            "hydro", "hydro_share", "hydro_pct", "hydro_percent",
-            "renewable_hydro", "hydro_share_of_energy",
+            "hydro",
+            "hydro_share",
+            "hydro_pct",
+            "hydro_percent",
+            "renewable_hydro",
+            "hydro_share_of_energy",
         ],
         "nuclear_share_energy": [
-            "nuclear", "nuclear_share", "nuclear_pct", "nuclear_percent",
+            "nuclear",
+            "nuclear_share",
+            "nuclear_pct",
+            "nuclear_percent",
         ],
         "gas_share_energy": [
-            "gas", "gas_share", "gas_pct", "gas_percent", "natural_gas",
+            "gas",
+            "gas_share",
+            "gas_pct",
+            "gas_percent",
+            "natural_gas",
         ],
         "coal_share_energy": [
-            "coal", "coal_share", "coal_pct", "coal_percent",
+            "coal",
+            "coal_share",
+            "coal_pct",
+            "coal_percent",
         ],
         "primary_energy_consumption": [
-            "primary_energy", "energy_consumption", "total_energy",
+            "primary_energy",
+            "energy_consumption",
+            "total_energy",
         ],
     }
 
@@ -254,5 +274,3 @@ def _detect_alternative_columns(df: pd.DataFrame) -> dict[str, str]:
                 break
 
     return mapping
-
-

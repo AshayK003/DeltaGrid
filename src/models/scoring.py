@@ -37,6 +37,3 @@ def compute_green_score(
 
     result["green_score"] = np.round(score, 2)
     return result
-
-
-

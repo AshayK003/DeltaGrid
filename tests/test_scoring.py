@@ -9,17 +9,19 @@ from src.models.scoring import compute_green_score
 
 @pytest.fixture
 def sample_energy_df():
-    return pd.DataFrame({
-        "iso_code": ["IND", "IND", "USA", "USA"],
-        "year": [2020, 2021, 2020, 2021],
-        "country": ["India", "India", "United States", "United States"],
-        "solar_share_energy": [1.0, 1.5, 2.0, 3.0],
-        "wind_share_energy": [0.5, 0.7, 3.5, 4.0],
-        "hydro_share_energy": [10.0, 10.5, 6.0, 6.5],
-        "nuclear_share_energy": [1.2, 1.3, 8.0, 8.5],
-        "gas_share_energy": [5.0, 5.2, 32.0, 33.0],
-        "coal_share_energy": [44.0, 43.0, 19.0, 18.0],
-    })
+    return pd.DataFrame(
+        {
+            "iso_code": ["IND", "IND", "USA", "USA"],
+            "year": [2020, 2021, 2020, 2021],
+            "country": ["India", "India", "United States", "United States"],
+            "solar_share_energy": [1.0, 1.5, 2.0, 3.0],
+            "wind_share_energy": [0.5, 0.7, 3.5, 4.0],
+            "hydro_share_energy": [10.0, 10.5, 6.0, 6.5],
+            "nuclear_share_energy": [1.2, 1.3, 8.0, 8.5],
+            "gas_share_energy": [5.0, 5.2, 32.0, 33.0],
+            "coal_share_energy": [44.0, 43.0, 19.0, 18.0],
+        }
+    )
 
 
 def test_compute_green_score_returns_column(sample_energy_df):
@@ -39,12 +41,14 @@ def test_compute_green_score_respects_weights(sample_energy_df):
 
 
 def test_compute_green_score_zero_weights():
-    df = pd.DataFrame({
-        "iso_code": ["X"],
-        "year": [2020],
-        "country": ["X"],
-        "solar_share_energy": [10.0],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["X"],
+            "year": [2020],
+            "country": ["X"],
+            "solar_share_energy": [10.0],
+        }
+    )
     weights = {"solar_share_energy": 0.0}
     result = compute_green_score(df, weights=weights)
     assert result["green_score"].iloc[0] == 0.0
@@ -58,58 +62,68 @@ def test_compute_green_score_empty_df():
 
 
 def test_compute_green_score_nan_shares():
-    df = pd.DataFrame({
-        "iso_code": ["X"],
-        "year": [2020],
-        "country": ["X"],
-        "solar_share_energy": [float("nan")],
-        "wind_share_energy": [float("nan")],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["X"],
+            "year": [2020],
+            "country": ["X"],
+            "solar_share_energy": [float("nan")],
+            "wind_share_energy": [float("nan")],
+        }
+    )
     w = {"solar_share_energy": 1.0, "wind_share_energy": 1.0}
     result = compute_green_score(df, weights=w)
     assert result["green_score"].iloc[0] == 0.0
 
 
 def test_compute_green_score_single_row():
-    df = pd.DataFrame({
-        "iso_code": ["X"],
-        "year": [2020],
-        "country": ["X"],
-        "solar_share_energy": [5.0],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["X"],
+            "year": [2020],
+            "country": ["X"],
+            "solar_share_energy": [5.0],
+        }
+    )
     result = compute_green_score(df, weights={"solar_share_energy": 1.0})
     assert result["green_score"].iloc[0] == 5.0
     # With a 100% share, score should be 100 (absolute max)
-    df2 = pd.DataFrame({
-        "iso_code": ["X"],
-        "year": [2020],
-        "country": ["X"],
-        "solar_share_energy": [100.0],
-    })
+    df2 = pd.DataFrame(
+        {
+            "iso_code": ["X"],
+            "year": [2020],
+            "country": ["X"],
+            "solar_share_energy": [100.0],
+        }
+    )
     result2 = compute_green_score(df2, weights={"solar_share_energy": 1.0})
     assert result2["green_score"].iloc[0] == 100.0
 
 
 def test_compute_green_score_does_not_mutate_input():
-    df = pd.DataFrame({
-        "iso_code": ["IND"],
-        "year": [2020],
-        "country": ["India"],
-        "solar_share_energy": [1.0],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["IND"],
+            "year": [2020],
+            "country": ["India"],
+            "solar_share_energy": [1.0],
+        }
+    )
     original_cols = list(df.columns)
     compute_green_score(df, dict(DEFAULT_WEIGHTS))
     assert list(df.columns) == original_cols
 
 
 def test_compute_green_score_all_zero_shares():
-    df = pd.DataFrame({
-        "iso_code": ["X"],
-        "year": [2020],
-        "country": ["X"],
-        "solar_share_energy": [0.0],
-        "wind_share_energy": [0.0],
-    })
+    df = pd.DataFrame(
+        {
+            "iso_code": ["X"],
+            "year": [2020],
+            "country": ["X"],
+            "solar_share_energy": [0.0],
+            "wind_share_energy": [0.0],
+        }
+    )
     w = {"solar_share_energy": 1.0, "wind_share_energy": 1.0}
     result = compute_green_score(df, weights=w)
     assert result["green_score"].iloc[0] == 0.0

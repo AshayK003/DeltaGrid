@@ -28,6 +28,7 @@ def test_read_cache_expired():
     path = CACHE_DIR / "expired_key.json"
     old_time = time.time() - 120
     import os
+
     os.utime(path, (old_time, old_time))
     result = read_cache("expired_key", ttl=60)
     assert result is None

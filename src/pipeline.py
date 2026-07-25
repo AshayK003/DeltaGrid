@@ -35,7 +35,8 @@ def run_analysis(
     """
     logger.info(
         "Running analysis for year=%d with %d weights",
-        selected_year, len(weights),
+        selected_year,
+        len(weights),
     )
 
     if energy_df is None:
@@ -45,13 +46,12 @@ def run_analysis(
     year_df = scored_df[scored_df["year"] == selected_year].copy()
 
     ndc_data = fetch_all_ndcs()
-    classified = classify_countries(
-        compute_gap(year_df, ndc_data, selected_year)
-    )
+    classified = classify_countries(compute_gap(year_df, ndc_data, selected_year))
 
     logger.info(
         "Analysis complete: %d countries, %d with NDCs",
-        len(year_df), len(ndc_data),
+        len(year_df),
+        len(ndc_data),
     )
 
     return AnalysisResult(

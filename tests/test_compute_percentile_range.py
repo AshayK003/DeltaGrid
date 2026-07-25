@@ -1,4 +1,5 @@
 import numpy as np
+
 from app.components.choropleth import compute_percentile_range
 
 
