@@ -41,7 +41,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Lint (ruff)
-        run: uv run ruff check src/ tests/ --count
+        run: uv run ruff check src/ tests/
 
       - name: Format Check (ruff)
         run: uv run ruff format --check src/ tests/
