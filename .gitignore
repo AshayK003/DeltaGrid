@@ -36,6 +36,7 @@ data/cache/
 .env.local
 
 # Agent context (local only)
+.hermes/
 
 # Internal files
 internals/
