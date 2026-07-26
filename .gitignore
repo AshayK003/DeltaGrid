@@ -37,7 +37,7 @@ data/cache/
 
 # Agent context (local only)
 
-# Internal audit files (AEOS, engineering memory, bottlenecks, etc.)
+# Internal files
 internals/
 
 # Logs
