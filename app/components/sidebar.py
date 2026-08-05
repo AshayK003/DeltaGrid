@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.config import DEFAULT_WEIGHTS, ENERGY_SHARE_COLS, YEAR_MAX, YEAR_MIN
+from src.config import (
+    DEFAULT_SELECTED_YEAR_OFFSET,
+    DEFAULT_WEIGHTS,
+    ENERGY_SHARE_COLS,
+    YEAR_MAX,
+    YEAR_MIN,
+)
 from src.data.upload_preprocessor import preprocess_upload
 
 # Readable labels for energy sources
@@ -77,7 +83,7 @@ def render_sidebar(year_range: tuple[int, int]) -> tuple[dict[str, float], int]:
     data_min_year, data_max_year = year_range
     min_year = max(YEAR_MIN, data_min_year)
     max_year = min(YEAR_MAX, data_max_year)
-    default_year = min(max_year, 2022)
+    default_year = max_year - DEFAULT_SELECTED_YEAR_OFFSET
 
     selected_year = st.sidebar.slider(
         "Year",
