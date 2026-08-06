@@ -18,6 +18,9 @@ CLIMATE_WATCH_NDC_URL = "https://www.climatewatchdata.org/api/v1/ndcs"
 YEAR_MIN = 2010
 YEAR_MAX = 2025
 
+# --- Default year selection offset ---
+DEFAULT_SELECTED_YEAR_OFFSET = 3
+
 # --- OWID columns ---
 ISO_COL = "iso_code"
 YEAR_COL = "year"
